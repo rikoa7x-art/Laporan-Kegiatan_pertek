@@ -419,11 +419,18 @@ const Pekerjaan = {
     /**
      * View pekerjaan detail with timeline
      */
-    const timelineHtml = pekerjaan.tahapan.map((tahap, index) => {
-        const isActive = index === pekerjaan.tahapan.length - 1 && pekerjaan.status !== 'selesai';
-        const pelaksanaNames = this.getPelaksanaNames(tahap.pelaksana, pekerja);
+    viewDetail(id) {
+        const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, id);
+        if (!pekerjaan) return;
 
-        return `
+        const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+        const progress = this.calculateProgress(pekerjaan.status);
+
+        const timelineHtml = pekerjaan.tahapan.map((tahap, index) => {
+            const isActive = index === pekerjaan.tahapan.length - 1 && pekerjaan.status !== 'selesai';
+            const pelaksanaNames = this.getPelaksanaNames(tahap.pelaksana, pekerja);
+
+            return `
                 <div class="timeline-item ${isActive ? 'active' : ''} ${tahap.tanggalSelesai ? 'completed' : ''}">
                     <div class="timeline-marker"></div>
                     <div class="timeline-content">
@@ -443,10 +450,10 @@ const Pekerjaan = {
                     </div>
                 </div>
             `;
-    }).join('');
+        }).join('');
 
-    const doks = pekerjaan.dokumen || [];
-    const dokumenHtml = doks.length > 0 ? doks.map(doc => `
+        const doks = pekerjaan.dokumen || [];
+        const dokumenHtml = doks.length > 0 ? doks.map(doc => `
             <div class="dokumen-item" style="display: flex; align-items: center; gap: var(--spacing-md); background: var(--bg-tertiary); padding: var(--spacing-sm); border-radius: var(--radius-sm); margin-bottom: var(--spacing-xs);">
                 <div style="width: 40px; height: 40px; background: #334155; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; overflow: hidden;">
                     ${doc.type.startsWith('image/') ? `<img src="${doc.data}" style="width: 100%; height: 100%; object-fit: cover;">` : '📄'}
@@ -462,7 +469,7 @@ const Pekerjaan = {
             </div>
         `).join('') : '<p class="text-muted" style="font-size: 0.875rem;">Belum ada dokumen/foto terlampir.</p>';
 
-    const content = `
+        const content = `
             <div style="display: grid; grid-template-columns: 1fr 350px; gap: var(--spacing-lg);">
                 <div style="min-width: 0;">
                     <div style="margin-bottom: var(--spacing-lg);">
@@ -512,86 +519,86 @@ const Pekerjaan = {
             </div>
         `;
 
-    Modal.open({
-        title: 'Detail Pekerjaan',
-        content,
-        size: 'large',
-        showFooter: false
-    });
-},
+        Modal.open({
+            title: 'Detail Pekerjaan',
+            content,
+            size: 'large',
+            showFooter: false
+        });
+    },
 
     /**
      * Delete pekerjaan
      */
-    async delete (id) {
-    const confirmed = await Modal.confirm({
-        title: 'Hapus Pekerjaan',
-        message: 'Apakah Anda yakin ingin menghapus pekerjaan ini? Semua data akan hilang.',
-        type: 'danger'
-    });
-
-    if (confirmed) {
-        Storage.delete(Storage.KEYS.PEKERJAAN, id);
-        Toast.show('Pekerjaan berhasil dihapus', 'success');
-        this.render();
-        Dashboard.refresh();
-    }
-},
-
-/**
- * Upload document
- */
-uploadDocument(id, input) {
-    const file = input.files[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-        Toast.show('Ukuran file terlalu besar (max 2MB)', 'error');
-        return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, id);
-        if (!pekerjaan) return;
-
-        if (!pekerjaan.dokumen) pekerjaan.dokumen = [];
-
-        pekerjaan.dokumen.push({
-            id: Utils.generateId(),
-            name: file.name,
-            type: file.type,
-            data: e.target.result,
-            createdAt: new Date().toISOString()
+    async delete(id) {
+        const confirmed = await Modal.confirm({
+            title: 'Hapus Pekerjaan',
+            message: 'Apakah Anda yakin ingin menghapus pekerjaan ini? Semua data akan hilang.',
+            type: 'danger'
         });
 
-        Storage.update(Storage.KEYS.PEKERJAAN, id, pekerjaan);
-        Toast.show('Dokumen berhasil diunggah!', 'success');
+        if (confirmed) {
+            Storage.delete(Storage.KEYS.PEKERJAAN, id);
+            Toast.show('Pekerjaan berhasil dihapus', 'success');
+            this.render();
+            Dashboard.refresh();
+        }
+    },
 
-        // Re-open modal to show new document
-        this.viewDetail(id);
-    };
-    reader.readAsDataURL(file);
-},
+    /**
+     * Upload document
+     */
+    uploadDocument(id, input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            Toast.show('Ukuran file terlalu besar (max 2MB)', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, id);
+            if (!pekerjaan) return;
+
+            if (!pekerjaan.dokumen) pekerjaan.dokumen = [];
+
+            pekerjaan.dokumen.push({
+                id: Utils.generateId(),
+                name: file.name,
+                type: file.type,
+                data: e.target.result,
+                createdAt: new Date().toISOString()
+            });
+
+            Storage.update(Storage.KEYS.PEKERJAAN, id, pekerjaan);
+            Toast.show('Dokumen berhasil diunggah!', 'success');
+
+            // Re-open modal to show new document
+            this.viewDetail(id);
+        };
+        reader.readAsDataURL(file);
+    },
 
     /**
      * Delete document
      */
     async deleteDocument(pekerjaanId, docId) {
-    const confirmed = await Modal.confirm({
-        title: 'Hapus Dokumen',
-        message: 'Apakah Anda yakin ingin menghapus dokumen ini?',
-        type: 'danger'
-    });
+        const confirmed = await Modal.confirm({
+            title: 'Hapus Dokumen',
+            message: 'Apakah Anda yakin ingin menghapus dokumen ini?',
+            type: 'danger'
+        });
 
-    if (confirmed) {
-        const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, pekerjaanId);
-        if (pekerjaan && pekerjaan.dokumen) {
-            pekerjaan.dokumen = pekerjaan.dokumen.filter(d => d.id !== docId);
-            Storage.update(Storage.KEYS.PEKERJAAN, pekerjaanId, pekerjaan);
-            Toast.show('Dokumen dihapus', 'success');
-            this.viewDetail(pekerjaanId);
+        if (confirmed) {
+            const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, pekerjaanId);
+            if (pekerjaan && pekerjaan.dokumen) {
+                pekerjaan.dokumen = pekerjaan.dokumen.filter(d => d.id !== docId);
+                Storage.update(Storage.KEYS.PEKERJAAN, pekerjaanId, pekerjaan);
+                Toast.show('Dokumen dihapus', 'success');
+                this.viewDetail(pekerjaanId);
+            }
         }
     }
-}
 };
