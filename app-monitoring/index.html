@@ -554,6 +554,14 @@
                     const pelaksanaNames = this.getPelaksanaNames(currentTahap?.pelaksana, pekerja);
                     const progress = this.calculateProgress(item.status);
 
+                    let agingWarning = '';
+                    if (['drafting', 'estimasi'].includes(item.status)) {
+                        const days = Utils.getDaysDifference(currentTahap.tanggalMulai);
+                        if (days >= 3) {
+                            agingWarning = `<span class="badge badge-danger" style="font-size: 0.7rem; margin-top: 4px; display: block; width: fit-content;">⚠️ >3 HARI</span>`;
+                        }
+                    }
+
                     return `
                         <tr>
                             <td>
@@ -565,6 +573,7 @@
                             </td>
                             <td>
                                 <span class="workflow-status ${Utils.getWorkflowStatusColor(item.status)}">${Utils.getStatusDisplay(item.status)}</span>
+                                ${agingWarning}
                             </td>
                             <td>${pelaksanaNames || '-'}</td>
                             <td>

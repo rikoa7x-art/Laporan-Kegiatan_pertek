@@ -274,6 +274,19 @@ const Utils = {
     truncate(text, maxLength = 50) {
         if (!text || text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
+    },
+
+    /**
+     * Calculate difference in days between two dates
+     * @param {string|Date} startDate - Start date
+     * @param {string|Date} endDate - End date (defaults to now)
+     * @returns {number} - Number of days
+     */
+    getDaysDifference(startDate, endDate = new Date()) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        const diffTime = Math.abs(end - start);
+        return Math.floor(diffTime / (1000 * 60 * 60 * 24));
     }
 };
 

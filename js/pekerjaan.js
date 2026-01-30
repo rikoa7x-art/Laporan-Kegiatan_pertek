@@ -92,6 +92,15 @@ const Pekerjaan = {
             const pelaksanaNames = this.getPelaksanaNames(currentTahap?.pelaksana, pekerja);
             const progress = this.calculateProgress(item.status);
 
+            // Aging warning logic for Drafting (Gambar) and Estimasi (RAB)
+            let agingWarning = '';
+            if (['drafting', 'estimasi'].includes(item.status)) {
+                const days = Utils.getDaysDifference(currentTahap.tanggalMulai);
+                if (days >= 3) {
+                    agingWarning = `<span class="badge badge-danger" style="font-size: 0.7rem; margin-left: 5px;">⚠️ >3 Hari</span>`;
+                }
+            }
+
             // Check if current user is assigned to this task's current stage
             const isAssigned = currentUser && currentTahap?.pelaksana?.includes(currentUser.id);
             const canHandoff = isManagement || isAssigned;
@@ -106,7 +115,7 @@ const Pekerjaan = {
                                 <span class="text-muted">📍 ${Utils.escapeHtml(item.lokasi || '-')}</span>
                             </div>
                         </div>
-                        <span class="workflow-status ${statusColor}">${Utils.getStatusDisplay(item.status)}</span>
+                        <span class="workflow-status ${statusColor}">${Utils.getStatusDisplay(item.status)}${agingWarning}</span>
                     </div>
                     
                     <div class="pekerjaan-progress">
@@ -430,13 +439,21 @@ const Pekerjaan = {
             const isActive = index === pekerjaan.tahapan.length - 1 && pekerjaan.status !== 'selesai';
             const pelaksanaNames = this.getPelaksanaNames(tahap.pelaksana, pekerja);
 
+            let tahapWarning = '';
+            if (!tahap.tanggalSelesai && ['drafting', 'estimasi'].includes(tahap.status)) {
+                const days = Utils.getDaysDifference(tahap.tanggalMulai);
+                if (days >= 3) {
+                    tahapWarning = `<span class="badge badge-danger" style="font-size: 0.75rem; vertical-align: middle; margin-left: 8px;">⚠️ Terlambat (>3 Hari)</span>`;
+                }
+            }
+
             return `
                 <div class="timeline-item ${isActive ? 'active' : ''} ${tahap.tanggalSelesai ? 'completed' : ''}">
                     <div class="timeline-marker"></div>
                     <div class="timeline-content">
                         <div class="timeline-header">
                             <span class="workflow-status ${Utils.getWorkflowStatusColor(tahap.status)}">
-                                ${Utils.getStatusDisplay(tahap.status)}
+                                ${Utils.getStatusDisplay(tahap.status)}${tahapWarning}
                             </span>
                             <span class="timeline-date">
                                 ${Utils.formatDateShort(tahap.tanggalMulai)}
