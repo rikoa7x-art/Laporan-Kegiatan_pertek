@@ -278,7 +278,10 @@ const Storage = {
 };
 
 // Initialize sample data and cloud on load
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     Storage.initSampleData();
-    Storage.initCloud();
+    if (Storage.initCloud() && Storage.config.autoSync) {
+        // Automatic pull on startup to get latest data from other devices
+        await Storage.pull();
+    }
 });
