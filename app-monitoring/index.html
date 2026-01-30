@@ -86,10 +86,14 @@
         .stat-card-large {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-xl);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
             text-align: center;
             transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-md);
         }
 
         .stat-card-large:hover {
@@ -98,43 +102,44 @@
         }
 
         .stat-card-large .stat-icon {
-            font-size: 2.5rem;
-            margin-bottom: var(--spacing-md);
+            font-size: 1.25rem;
+            margin-bottom: 0;
         }
 
         .stat-card-large .stat-value {
-            font-size: 2.5rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            margin-bottom: var(--spacing-xs);
+            margin-bottom: 0;
         }
 
         .stat-card-large .stat-label {
             color: var(--text-secondary);
-            font-size: 0.875rem;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
 
         .stat-card-large.survey {
-            border-left: 4px solid #3b82f6;
+            border-left: 3px solid #3b82f6;
         }
 
         .stat-card-large.drafting {
-            border-left: 4px solid #f59e0b;
+            border-left: 3px solid #f59e0b;
         }
 
         .stat-card-large.estimasi {
-            border-left: 4px solid #8b5cf6;
+            border-left: 3px solid #8b5cf6;
         }
 
         .stat-card-large.review {
-            border-left: 4px solid #ec4899;
+            border-left: 3px solid #ec4899;
         }
 
         .stat-card-large.wasdal {
-            border-left: 4px solid #06b6d4;
+            border-left: 3px solid #06b6d4;
         }
 
         .stat-card-large.selesai {
-            border-left: 4px solid #10b981;
+            border-left: 3px solid #10b981;
         }
 
         .workflow-overview {
@@ -147,23 +152,27 @@
 
         .workflow-stage {
             flex: 1;
-            min-width: 150px;
+            min-width: 120px;
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
-            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-sm) var(--spacing-md);
             text-align: center;
             position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
 
         .workflow-stage::after {
             content: '→';
             position: absolute;
-            right: -20px;
+            right: -15px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
-            font-size: 1.5rem;
+            font-size: 1rem;
         }
 
         .workflow-stage:last-child::after {
@@ -171,18 +180,19 @@
         }
 
         .workflow-stage .stage-icon {
-            font-size: 1.5rem;
-            margin-bottom: var(--spacing-sm);
+            font-size: 1rem;
+            margin-bottom: 2px;
         }
 
         .workflow-stage .stage-name {
             font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: var(--spacing-xs);
+            font-size: 0.7rem;
+            margin-bottom: 0;
+            color: var(--text-secondary);
         }
 
         .workflow-stage .stage-count {
-            font-size: 1.5rem;
+            font-size: 1.125rem;
             font-weight: 700;
             color: var(--primary);
         }
@@ -300,16 +310,16 @@
         </header>
 
         <div class="dashboard-content">
-            <!-- Workflow Overview -->
-            <h2 class="section-title">📈 Workflow Overview</h2>
-            <div class="workflow-overview" id="workflowOverview">
-                <!-- Will be rendered by JS -->
-            </div>
-
-            <!-- Summary Stats -->
-            <h2 class="section-title">📊 Ringkasan</h2>
-            <div class="dashboard-grid" id="summaryStats">
-                <!-- Will be rendered by JS -->
+            <!-- Summary & Workflow -->
+            <div
+                style="display: grid; grid-template-columns: 1fr 300px; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
+                <div id="workflowOverview" class="workflow-overview" style="margin-bottom: 0;">
+                    <!-- Will be rendered by JS -->
+                </div>
+                <div id="summaryStats" class="dashboard-grid"
+                    style="grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); margin-bottom: 0;">
+                    <!-- Will be rendered by JS -->
+                </div>
             </div>
 
             <!-- All Pekerjaan Table -->
@@ -468,28 +478,38 @@
                 container.innerHTML = `
                     <div class="stat-card-large">
                         <div class="stat-icon">📁</div>
-                        <div class="stat-value">${total}</div>
-                        <div class="stat-label">Total Pekerjaan</div>
+                        <div style="text-align: left;">
+                            <div class="stat-value">${total}</div>
+                            <div class="stat-label">Total</div>
+                        </div>
                     </div>
                     <div class="stat-card-large survey">
                         <div class="stat-icon">🔄</div>
-                        <div class="stat-value">${inProgress}</div>
-                        <div class="stat-label">Sedang Berjalan</div>
+                        <div style="text-align: left;">
+                            <div class="stat-value">${inProgress}</div>
+                            <div class="stat-label">Berjalan</div>
+                        </div>
                     </div>
                     <div class="stat-card-large selesai">
                         <div class="stat-icon">✔️</div>
-                        <div class="stat-value">${completed}</div>
-                        <div class="stat-label">Selesai</div>
+                        <div style="text-align: left;">
+                            <div class="stat-value">${completed}</div>
+                            <div class="stat-label">Selesai</div>
+                        </div>
                     </div>
                     <div class="stat-card-large drafting">
                         <div class="stat-icon">🏗️</div>
-                        <div class="stat-value">${sipil}</div>
-                        <div class="stat-label">Bangunan Sipil</div>
+                        <div style="text-align: left;">
+                            <div class="stat-value">${sipil}</div>
+                            <div class="stat-label">Sipil</div>
+                        </div>
                     </div>
                     <div class="stat-card-large estimasi">
                         <div class="stat-icon">🔧</div>
-                        <div class="stat-value">${perpipaan}</div>
-                        <div class="stat-label">Perpipaan</div>
+                        <div style="text-align: left;">
+                            <div class="stat-value">${perpipaan}</div>
+                            <div class="stat-label">Pipa</div>
+                        </div>
                     </div>
                 `;
             },
