@@ -551,9 +551,14 @@
                             </td>
                             <td>${Utils.formatDateShort(item.createdAt)}</td>
                             <td>
-                                <button class="btn btn-secondary btn-sm" onclick="Pekerjaan.viewDetail('${item.id}')">
-                                    👁️ Detail
-                                </button>
+                                <div style="display: flex; gap: var(--spacing-xs);">
+                                    <button class="btn btn-secondary btn-sm" onclick="Pekerjaan.viewDetail('${item.id}')">
+                                        👁️ Detail
+                                    </button>
+                                    <button class="btn btn-danger btn-sm" onclick="Pekerjaan.delete('${item.id}')" title="Hapus">
+                                        🗑️
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
