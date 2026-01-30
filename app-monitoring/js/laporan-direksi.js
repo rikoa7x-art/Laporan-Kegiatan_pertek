@@ -121,16 +121,17 @@ const LaporanDireksi = {
                     <h2 style="font-size: 1.125rem; background: #f1f5f9; padding: 0.5rem 1rem; border-left: 4px solid #3b82f6; margin-bottom: 1rem; color: #1e293b;">
                         ${key === 'sipil' ? '🏗️ BANGUNAN SIPIL' : '🔧 PERPIPAAN'}
                     </h2>
-                    <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
-                        <thead>
-                            <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
-                                <th style="padding: 0.75rem; text-align: left; width: 30%;">NAMA PEKERJAAN / LOKASI</th>
-                                <th style="padding: 0.75rem; text-align: left; width: 15%;">STATUS</th>
-                                <th style="padding: 0.75rem; text-align: left; width: 30%;">INDIVIDU / PERSONEL</th>
-                                <th style="padding: 0.75rem; text-align: left; width: 25%;">PROGRESS & CATATAN</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                    <div class="table-responsive" style="width: 100%; overflow-x: auto; margin-bottom: 2rem; -webkit-overflow-scrolling: touch;">
+                        <table style="width: 100%; min-width: 600px; border-collapse: collapse; font-size: 0.875rem;">
+                            <thead>
+                                <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                                    <th style="padding: 0.75rem; text-align: left; width: 30%;">NAMA PEKERJAAN / LOKASI</th>
+                                    <th style="padding: 0.75rem; text-align: left; width: 15%;">STATUS</th>
+                                    <th style="padding: 0.75rem; text-align: left; width: 30%;">INDIVIDU / PERSONEL</th>
+                                    <th style="padding: 0.75rem; text-align: left; width: 25%;">PROGRESS & CATATAN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
             `;
 
             items.forEach(item => {
