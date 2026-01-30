@@ -155,6 +155,8 @@ const Storage = {
     },
 
     db: null,
+    onSyncCallback: null,
+    managedListener: false,
 
     /**
      * Initialize Firebase client
@@ -172,6 +174,25 @@ const Storage = {
                     firebase.initializeApp(firebaseConfig);
                 }
                 this.db = firebase.database();
+
+                // Setup real-time listener if autoSync is enabled
+                if (this.config.autoSync && !this.managedListener) {
+                    this.db.ref('pertek_data').on('value', (snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                            Object.keys(data).forEach(key => {
+                                // Use skipSync=true to avoid recursive push()
+                                this.set(key, data[key], true);
+                            });
+                            // Notify UI to refresh
+                            if (this.onSyncCallback) {
+                                this.onSyncCallback();
+                            }
+                        }
+                    });
+                    this.managedListener = true;
+                }
+
                 return true;
             } catch (error) {
                 console.error('Firebase init error:', error);
@@ -216,6 +237,10 @@ const Storage = {
                 this.set(key, data[key], true); // true to skip recursion
                 updatedCount++;
             });
+
+            if (this.onSyncCallback) {
+                this.onSyncCallback();
+            }
 
             return { success: true, message: `${updatedCount} collections updated` };
         } catch (error) {

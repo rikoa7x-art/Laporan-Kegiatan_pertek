@@ -681,6 +681,12 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             DashboardApp.init();
+
+            // Register real-time sync callback
+            Storage.onSyncCallback = () => {
+                DashboardApp.render();
+                Toast.show('Data disinkronkan', 'info');
+            };
         });
     </script>
 </body>
