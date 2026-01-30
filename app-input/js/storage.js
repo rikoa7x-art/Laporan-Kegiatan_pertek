@@ -155,10 +155,10 @@ const Storage = {
                 { nama: 'M. Sulaeman', role: 'asman_perpipaan', departemen: 'Perpipaan' },
 
                 // Staff Teknis
-                { nama: 'Yunia', role: 'surveyor', departemen: 'Teknik' },
-                { nama: 'Andit', role: 'estimator', departemen: 'Perencanaan' },
-                { nama: 'Fahry', role: 'drafter', departemen: 'Desain' },
-                { nama: 'Aldy', role: 'surveyor', departemen: 'Teknik' },
+                { nama: 'Yunia', role: 'staf', departemen: 'Teknik' },
+                { nama: 'Andit', role: 'staf', departemen: 'Perencanaan' },
+                { nama: 'Fahry', role: 'staf', departemen: 'Desain' },
+                { nama: 'Aldy', role: 'staf', departemen: 'Teknik' },
 
                 // Pengawas dan Pengendalian
                 { nama: 'Dian Suhendrik', role: 'wasdal', departemen: 'Pengawasan' }

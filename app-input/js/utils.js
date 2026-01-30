@@ -126,9 +126,9 @@ const Utils = {
             manager: '👔 Manager Divisi',
             asman_sipil: '🏗️ Asman Bangunan Sipil',
             asman_perpipaan: '🔧 Asman Perpipaan',
-            surveyor: '🔍 Surveyor',
-            estimator: '📊 Estimator',
-            drafter: '✏️ Drafter',
+            surveyor: '👷 Staf',
+            estimator: '👷 Staf',
+            drafter: '👷 Staf',
             wasdal: '👁️ Wasdal',
             supervisor: '👔 Supervisor'
         };
