@@ -366,14 +366,14 @@
     <script>
         // User Data
         const users = [
-            { id: 'dadi', nama: 'Dadi Riswadi', role: 'manager', roleDisplay: '👔 Manager Divisi', password: '123' },
-            { id: 'riko', nama: 'Riko Komara', role: 'asman_sipil', roleDisplay: '🏗️ Asman Bangunan Sipil', password: '123' },
-            { id: 'sulaeman', nama: 'M. Sulaeman', role: 'asman_perpipaan', roleDisplay: '🔧 Asman Perpipaan', password: '123' },
-            { id: 'dian', nama: 'Dian Suhendrik', role: 'staf', roleDisplay: '👷 Staf', password: '123' },
-            { id: 'yunia', nama: 'Yunia', role: 'staf', roleDisplay: '👷 Staf', password: '123' },
-            { id: 'andit', nama: 'Andit', role: 'staf', roleDisplay: '👷 Staf', password: '123' },
-            { id: 'aldy', nama: 'Aldy', role: 'staf', roleDisplay: '👷 Staf', password: '123' },
-            { id: 'fahry', nama: 'Fahry', role: 'staf', roleDisplay: '👷 Staf', password: '123' }
+            { id: 'dadi', nama: 'Dadi Riswadi', role: 'manager', roleDisplay: '👔 Manager Divisi', password: 'dadi' },
+            { id: 'riko', nama: 'Riko Komara', role: 'asman_sipil', roleDisplay: '🏗️ Asman Bangunan Sipil', password: 'riko' },
+            { id: 'sulaeman', nama: 'M. Sulaeman', role: 'asman_perpipaan', roleDisplay: '🔧 Asman Perpipaan', password: 'sulaeman' },
+            { id: 'dian', nama: 'Dian Suhendrik', role: 'staf', roleDisplay: '👷 Staf', password: 'dian' },
+            { id: 'yunia', nama: 'Yunia', role: 'staf', roleDisplay: '👷 Staf', password: 'yunia' },
+            { id: 'andit', nama: 'Andit', role: 'staf', roleDisplay: '👷 Staf', password: 'andit' },
+            { id: 'aldy', nama: 'Aldy', role: 'staf', roleDisplay: '👷 Staf', password: 'aldy' },
+            { id: 'fahry', nama: 'Fahry', role: 'staf', roleDisplay: '👷 Staf', password: 'fahry' }
         ];
 
         let currentUser = null;
@@ -453,7 +453,7 @@
                 <div class="form-group">
                     <label class="form-label">Masukkan Password untuk <strong>${selected.nama}</strong></label>
                     <input type="password" id="loginPassword" class="form-input" placeholder="Password" required autofocus>
-                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--spacing-sm);">Default password: 123</p>
+                    <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--spacing-sm);">Password: (nama depan anda, huruf kecil)</p>
                 </div>
             `;
 
