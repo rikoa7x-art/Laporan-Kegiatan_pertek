@@ -231,8 +231,36 @@ const Pekerjaan = {
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Lokasi</label>
-                    <input type="text" name="lokasi" class="form-input" placeholder="Alamat lokasi pekerjaan">
+                    <label class="form-label">Lokasi (Kecamatan)</label>
+                    <select name="lokasi" class="form-select" required>
+                        <option value="">Pilih Kecamatan</option>
+                        <option value="Binong">Binong</option>
+                        <option value="Blanakan">Blanakan</option>
+                        <option value="Ciasem">Ciasem</option>
+                        <option value="Ciater">Ciater</option>
+                        <option value="Cibogo">Cibogo</option>
+                        <option value="Cijambe">Cijambe</option>
+                        <option value="Cipeundeuy">Cipeundeuy</option>
+                        <option value="Cipunagara">Cipunagara</option>
+                        <option value="Cisalak">Cisalak</option>
+                        <option value="Compreng">Compreng</option>
+                        <option value="Dawuan">Dawuan</option>
+                        <option value="Jalancagak">Jalancagak</option>
+                        <option value="Kalijati">Kalijati</option>
+                        <option value="Kasomalang">Kasomalang</option>
+                        <option value="Legonkulon">Legonkulon</option>
+                        <option value="Pabuaran">Pabuaran</option>
+                        <option value="Pagaden">Pagaden</option>
+                        <option value="Pamanukan">Pamanukan</option>
+                        <option value="Patokbeusi">Patokbeusi</option>
+                        <option value="Purwadadi">Purwadadi</option>
+                        <option value="Pusakajaya">Pusakajaya</option>
+                        <option value="Pusakanagara">Pusakanagara</option>
+                        <option value="Sagalaherang">Sagalaherang</option>
+                        <option value="Subang">Subang</option>
+                        <option value="Tambakdahan">Tambakdahan</option>
+                        <option value="Tanjungsiang">Tanjungsiang</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
