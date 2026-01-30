@@ -129,6 +129,7 @@ const Utils = {
             surveyor: '👷 Staf',
             estimator: '👷 Staf',
             drafter: '👷 Staf',
+            staf: '👷 Staf',
             wasdal: '👁️ Wasdal',
             supervisor: '👔 Supervisor'
         };
