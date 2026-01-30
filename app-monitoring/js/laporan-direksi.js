@@ -171,9 +171,21 @@ const LaporanDireksi = {
                                 </div>
                                 <span style="font-weight: 600; font-size: 0.75rem;">${progress}%</span>
                             </div>
-                            <div style="font-size: 0.75rem; color: #475569; font-style: italic;">
+                            <div style="font-size: 0.75rem; color: #475569; font-style: italic; margin-bottom: 0.5rem;">
                                 ${Utils.escapeHtml(currentTahap?.catatan || 'Tidak ada catatan terbaru')}
                             </div>
+                            ${item.dokumen && item.dokumen.length > 0 ? `
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 5px;">
+                                    ${item.dokumen.filter(d => d.type.startsWith('image/')).slice(0, 4).map(img => `
+                                        <div style="height: 60px; border-radius: 4px; overflow: hidden; border: 1px solid #e2e8f0;">
+                                            <img src="${img.data}" style="width: 100%; height: 100%; object-fit: cover;">
+                                        </div>
+                                    `).join('')}
+                                </div>
+                                <div style="font-size: 0.65rem; color: #94a3b8; margin-top: 2px;">
+                                    ${item.dokumen.length} dokumen terlampir
+                                </div>
+                            ` : ''}
                         </td>
                     </tr>
                 `;

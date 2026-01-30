@@ -275,6 +275,13 @@ const Utils = {
     truncate(text, maxLength = 50) {
         if (!text || text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
+    },
+
+    /**
+     * Generate simple random ID
+     */
+    generateId() {
+        return Math.random().toString(36).substr(2, 9);
     }
 };
 
