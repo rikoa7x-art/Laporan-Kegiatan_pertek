@@ -307,6 +307,9 @@
                     <button class="logout-btn" onclick="logout()">Keluar</button>
                 </div>
                 <a href="../app-monitoring/index.html" class="nav-link">📊 Monitoring Dashboard</a>
+                <button onclick="SyncUI.showSettings()" class="btn btn-secondary"
+                    style="padding: 4px 8px; font-size: 1.25rem; background: transparent; border: 1px solid var(--border-color);"
+                    title="Cloud Settings">⚙️</button>
             </div>
         </header>
 
@@ -353,9 +356,12 @@
 
     <!-- External Scripts -->
     <link rel="stylesheet" href="css/styles.css">
-    <script src="js/storage.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/modal.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/modal.js"></script>
+    <script src="../js/sync-ui.js"></script>
 
     <script>
         // User Data

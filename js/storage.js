@@ -35,10 +35,14 @@ const Storage = {
      * Save data to localStorage
      * @param {string} key - Storage key
      * @param {Array} data - Data to save
+     * @param {boolean} skipSync - Whether to skip cloud sync
      */
-    set(key, data) {
+    set(key, data, skipSync = false) {
         try {
             localStorage.setItem(key, JSON.stringify(data));
+            if (this.config.autoSync && !skipSync) {
+                this.push();
+            }
         } catch (error) {
             console.error('Error saving to storage:', error);
         }
@@ -141,8 +145,110 @@ const Storage = {
         });
     },
 
+    // --- CLOUD SYNC (FIREBASE) ---
+
+    config: {
+        apiKey: localStorage.getItem('pertek_firebase_apiKey') || '',
+        databaseURL: localStorage.getItem('pertek_firebase_databaseURL') || '',
+        projectId: localStorage.getItem('pertek_firebase_projectId') || '',
+        autoSync: localStorage.getItem('pertek_auto_sync') === 'true'
+    },
+
+    db: null,
+
     /**
-     * Initialize with sample data if empty
+     * Initialize Firebase client
+     */
+    initCloud() {
+        if (this.config.apiKey && this.config.databaseURL && window.firebase) {
+            try {
+                // Only initialize if not already initialized
+                if (!firebase.apps.length) {
+                    const firebaseConfig = {
+                        apiKey: this.config.apiKey,
+                        databaseURL: this.config.databaseURL,
+                        projectId: this.config.projectId
+                    };
+                    firebase.initializeApp(firebaseConfig);
+                }
+                this.db = firebase.database();
+                return true;
+            } catch (error) {
+                console.error('Firebase init error:', error);
+                return false;
+            }
+        }
+        return false;
+    },
+
+    /**
+     * Save cloud configuration
+     */
+    saveConfig(config) {
+        this.config.apiKey = config.apiKey;
+        this.config.databaseURL = config.databaseURL;
+        this.config.projectId = config.projectId;
+        this.config.autoSync = config.autoSync;
+
+        localStorage.setItem('pertek_firebase_apiKey', config.apiKey);
+        localStorage.setItem('pertek_firebase_databaseURL', config.databaseURL);
+        localStorage.setItem('pertek_firebase_projectId', config.projectId);
+        localStorage.setItem('pertek_auto_sync', config.autoSync);
+
+        this.initCloud();
+    },
+
+    /**
+     * Pull data from cloud and merge with local
+     */
+    async pull() {
+        if (!this.initCloud()) return { success: false, message: 'Firebase not configured' };
+
+        try {
+            const snapshot = await this.db.ref('pertek_data').once('value');
+            const data = snapshot.val();
+
+            if (!data) return { success: true, message: 'No data found in cloud' };
+
+            let updatedCount = 0;
+            Object.keys(data).forEach(key => {
+                // Simplified: use the remote data as source of truth for now
+                this.set(key, data[key], true); // true to skip recursion
+                updatedCount++;
+            });
+
+            return { success: true, message: `${updatedCount} collections updated` };
+        } catch (error) {
+            console.error('Firebase pull error:', error);
+            return { success: false, message: error.message };
+        }
+    },
+
+    /**
+     * Push current local data to cloud
+     */
+    async push() {
+        if (!this.initCloud()) return { success: false, message: 'Firebase not configured' };
+
+        try {
+            const keys = Object.values(this.KEYS);
+            const uploadData = {};
+
+            for (const key of keys) {
+                uploadData[key] = this.get(key);
+            }
+
+            await this.db.ref('pertek_data').set(uploadData);
+
+            return { success: true, message: 'Data pushed to cloud' };
+        } catch (error) {
+            console.error('Firebase push error:', error);
+            return { success: false, message: error.message };
+        }
+    },
+
+    /**
+     * Initialize sample data if empty
      */
     initSampleData() {
         // Only init if no data exists
@@ -155,10 +261,10 @@ const Storage = {
                 { nama: 'M. Sulaeman', role: 'asman_perpipaan', departemen: 'Perpipaan' },
 
                 // Staff Teknis
-                { nama: 'Yunia', role: 'surveyor', departemen: 'Teknik' },
-                { nama: 'Andit', role: 'estimator', departemen: 'Perencanaan' },
-                { nama: 'Fahry', role: 'drafter', departemen: 'Desain' },
-                { nama: 'Aldy', role: 'surveyor', departemen: 'Teknik' },
+                { nama: 'Yunia', role: 'staf', departemen: 'Teknik' },
+                { nama: 'Andit', role: 'staf', departemen: 'Perencanaan' },
+                { nama: 'Fahry', role: 'staf', departemen: 'Desain' },
+                { nama: 'Aldy', role: 'staf', departemen: 'Teknik' },
 
                 // Pengawas dan Pengendalian
                 { nama: 'Dian Suhendrik', role: 'wasdal', departemen: 'Pengawasan' }
@@ -171,7 +277,8 @@ const Storage = {
     }
 };
 
-// Initialize sample data on load
+// Initialize sample data and cloud on load
 document.addEventListener('DOMContentLoaded', () => {
     Storage.initSampleData();
+    Storage.initCloud();
 });

@@ -306,6 +306,9 @@
                     style="display: flex; align-items: center; gap: var(--spacing-sm); background: #8b5cf6;">
                     📊 Laporan Direksi
                 </button>
+                <button onclick="SyncUI.showSettings()" class="btn btn-secondary"
+                    style="padding: 4px 8px; font-size: 1.25rem; border: 1px solid var(--border-color);"
+                    title="Cloud Settings">⚙️</button>
             </div>
         </header>
 
@@ -407,9 +410,12 @@
     <div class="toast-container" id="toastContainer"></div>
 
     <!-- Scripts -->
-    <script src="js/storage.js"></script>
-    <script src="js/utils.js"></script>
-    <script src="js/modal.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/utils.js"></script>
+    <script src="../js/modal.js"></script>
+    <script src="../js/sync-ui.js"></script>
     <script src="js/pekerjaan.js"></script>
     <script src="js/laporan-direksi.js"></script>
     <script>
