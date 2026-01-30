@@ -37,7 +37,7 @@ const LaporanDireksi = {
                 </div>
             </div>
 
-            <div id="reportContent" class="printable-report" style="background: white; color: #1e293b; padding: var(--spacing-xl); border-radius: var(--radius-md); border: 1px solid var(--border-color); min-height: 500px;">
+            <div id="reportContent" class="printable-report" style="background: white; color: #1e293b; padding: var(--spacing-md); border-radius: var(--radius-md); border: 1px solid var(--border-color); min-height: 500px; overflow-x: hidden;">
                 ${this.generateReportHtml(startDate, endDate)}
             </div>
         `;
@@ -192,31 +192,32 @@ const LaporanDireksi = {
             });
 
             html += `
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             `;
         }
 
         // Add Approval Section
         html += `
-            <div style="display: flex; justify-content: space-between; margin-top: 3rem; padding: 0 2rem;">
-                <div style="text-align: center; width: 200px;">
-                    <p style="margin-bottom: 4rem;">Dibuat Oleh,</p>
-                    <div style="border-top: 1px solid #000; padding-top: 0.5rem;">
-                        <strong>Staff Perencanaan</strong>
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 3rem; padding: 0 1rem; gap: 2rem;">
+                <div style="text-align: center; flex: 1; min-width: 150px;">
+                    <p style="margin-bottom: 3rem; font-size: 0.875rem;">Dibuat Oleh,</p>
+                    <div style="border-top: 1px solid #000; padding-top: 0.5rem; margin: 0 auto; width: 80%;">
+                        <strong style="font-size: 0.875rem;">Staff Perencanaan</strong>
                     </div>
                 </div>
-                <div style="text-align: center; width: 200px;">
-                    <p style="margin-bottom: 4rem;">Mengetahui,</p>
-                    <div style="border-top: 1px solid #000; padding-top: 0.5rem;">
-                        <strong>Asman / Manager</strong>
+                <div style="text-align: center; flex: 1; min-width: 150px;">
+                    <p style="margin-bottom: 3rem; font-size: 0.875rem;">Mengetahui,</p>
+                    <div style="border-top: 1px solid #000; padding-top: 0.5rem; margin: 0 auto; width: 80%;">
+                        <strong style="font-size: 0.875rem;">Asman / Manager</strong>
                     </div>
                 </div>
-                <div style="text-align: center; width: 200px;">
-                    <p style="margin-bottom: 4rem;">Menyetujui,</p>
-                    <div style="border-top: 1px solid #000; padding-top: 0.5rem;">
-                        <strong>Direksi</strong>
+                <div style="text-align: center; flex: 1; min-width: 150px;">
+                    <p style="margin-bottom: 3rem; font-size: 0.875rem;">Menyetujui,</p>
+                    <div style="border-top: 1px solid #000; padding-top: 0.5rem; margin: 0 auto; width: 80%;">
+                        <strong style="font-size: 0.875rem;">Direksi</strong>
                     </div>
                 </div>
             </div>
