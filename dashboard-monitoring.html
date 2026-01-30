@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Monitoring - Laporan Kegiatan Pertek</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        /* Dashboard Monitoring Styles */
+        .dashboard-app-container {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            padding: var(--spacing-lg);
+        }
+
+        .dashboard-app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-lg);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-xl);
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        .dashboard-app-header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+
+        .nav-link-input {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--primary);
+            border: none;
+            border-radius: var(--radius-md);
+            color: white;
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all var(--transition-fast);
+        }
+
+        .nav-link-input:hover {
+            background: var(--primary-dark);
+        }
+
+        .dashboard-content {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .stat-card-large {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
+            transition: all var(--transition-fast);
+        }
+
+        .stat-card-large:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .stat-card-large .stat-icon {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stat-card-large .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .stat-card-large .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stat-card-large.survey {
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stat-card-large.drafting {
+            border-left: 4px solid #f59e0b;
+        }
+
+        .stat-card-large.estimasi {
+            border-left: 4px solid #8b5cf6;
+        }
+
+        .stat-card-large.review {
+            border-left: 4px solid #ec4899;
+        }
+
+        .stat-card-large.wasdal {
+            border-left: 4px solid #06b6d4;
+        }
+
+        .stat-card-large.selesai {
+            border-left: 4px solid #10b981;
+        }
+
+        .workflow-overview {
+            display: flex;
+            gap: var(--spacing-md);
+            overflow-x: auto;
+            padding-bottom: var(--spacing-md);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .workflow-stage {
+            flex: 1;
+            min-width: 150px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            text-align: center;
+            position: relative;
+        }
+
+        .workflow-stage::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1.5rem;
+        }
+
+        .workflow-stage:last-child::after {
+            display: none;
+        }
+
+        .workflow-stage .stage-icon {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .workflow-stage .stage-name {
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .workflow-stage .stage-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .pekerjaan-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        .section-body {
+            padding: var(--spacing-lg);
+        }
+
+        .pekerjaan-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .pekerjaan-table th,
+        .pekerjaan-table td {
+            padding: var(--spacing-md);
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .pekerjaan-table th {
+            background: var(--bg-tertiary);
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .pekerjaan-table tbody tr:hover {
+            background: var(--bg-hover);
+        }
+
+        .pekerjaan-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .progress-mini {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .progress-mini .bar {
+            flex: 1;
+            height: 6px;
+            background: var(--bg-primary);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+
+        .progress-mini .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            border-radius: var(--radius-full);
+        }
+
+        .progress-mini .value {
+            font-size: 0.75rem;
+            font-weight: 600;
+            min-width: 35px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-app-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .workflow-stage::after {
+                display: none;
+            }
+
+            .pekerjaan-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-app-container">
+        <header class="dashboard-app-header">
+            <h1>📊 Dashboard Monitoring Pekerjaan</h1>
+            <div class="header-controls">
+                <button onclick="DashboardApp.render(); Toast.show('Data diperbarui!', 'success');"
+                    class="btn btn-secondary" style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                    🔄 Refresh Data
+                </button>
+                <a href="input-pekerjaan.html" class="nav-link-input">
+                    📋 Input Pekerjaan
+                </a>
+                <button onclick="LaporanDireksi.show()" class="btn btn-primary"
+                    style="display: flex; align-items: center; gap: var(--spacing-sm); background: #8b5cf6;">
+                    📊 Laporan Direksi
+                </button>
+            </div>
+        </header>
+
+        <div class="dashboard-content">
+            <!-- Workflow Overview -->
+            <h2 class="section-title">📈 Workflow Overview</h2>
+            <div class="workflow-overview" id="workflowOverview">
+                <!-- Will be rendered by JS -->
+            </div>
+
+            <!-- Summary Stats -->
+            <h2 class="section-title">📊 Ringkasan</h2>
+            <div class="dashboard-grid" id="summaryStats">
+                <!-- Will be rendered by JS -->
+            </div>
+
+            <!-- All Pekerjaan Table -->
+            <div class="pekerjaan-section">
+                <div class="section-header">
+                    <h3>📁 Semua Pekerjaan</h3>
+                    <div class="filter-bar" style="margin-bottom: 0;">
+                        <select id="filterStatus" class="form-select">
+                            <option value="">Semua Status</option>
+                            <option value="survey">📍 Survey</option>
+                            <option value="drafting">✏️ Gambar</option>
+                            <option value="estimasi">📊 RAB</option>
+                            <option value="review_asman">📋 Review</option>
+                            <option value="approval">✅ Approval</option>
+                            <option value="wasdal">👁️ Wasdal</option>
+                            <option value="selesai">✔️ Selesai</option>
+                        </select>
+                        <select id="filterKategori" class="form-select">
+                            <option value="">Semua Kategori</option>
+                            <option value="sipil">🏗️ Bangunan Sipil</option>
+                            <option value="perpipaan">🔧 Perpipaan</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="section-body">
+                    <table class="pekerjaan-table">
+                        <thead>
+                            <tr>
+                                <th>Nama Pekerjaan</th>
+                                <th>Kategori</th>
+                                <th>Status</th>
+                                <th>Pelaksana</th>
+                                <th>Progress</th>
+                                <th>Tanggal Dibuat</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="pekerjaanTableBody">
+                            <!-- Will be rendered by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Pekerjaan by Category -->
+            <div class="dashboard-grid">
+                <div class="pekerjaan-section">
+                    <div class="section-header">
+                        <h3>🏗️ Bangunan Sipil</h3>
+                    </div>
+                    <div class="section-body" id="sipiList">
+                        <!-- Will be rendered by JS -->
+                    </div>
+                </div>
+                <div class="pekerjaan-section">
+                    <div class="section-header">
+                        <h3>🔧 Perpipaan</h3>
+                    </div>
+                    <div class="section-body" id="perpipaanList">
+                        <!-- Will be rendered by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Modal Title</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Modal content will be rendered here -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button class="btn btn-secondary" id="btnModalCancel">Batal</button>
+                <button class="btn btn-primary" id="btnModalSave">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/pekerjaan.js"></script>
+    <script src="js/laporan-direksi.js"></script>
+    <script>
+        /**
+         * Dashboard Monitoring App
+         */
+        const DashboardApp = {
+            init() {
+                Toast.init();
+                Modal.init(); // Initialize modal for view detail
+                this.bindEvents();
+                this.render();
+
+                // Auto refresh every 30 seconds
+                setInterval(() => this.render(), 30000);
+            },
+
+            bindEvents() {
+                document.getElementById('filterStatus').addEventListener('change', () => this.renderTable());
+                document.getElementById('filterKategori').addEventListener('change', () => this.renderTable());
+            },
+
+            render() {
+                this.renderWorkflowOverview();
+                this.renderSummaryStats();
+                this.renderTable();
+                this.renderCategoryLists();
+            },
+
+            renderWorkflowOverview() {
+                const container = document.getElementById('workflowOverview');
+                const pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
+
+                const stages = [
+                    { status: 'survey', icon: '📍', name: 'Survey' },
+                    { status: 'drafting', icon: '✏️', name: 'Gambar' },
+                    { status: 'estimasi', icon: '📊', name: 'RAB' },
+                    { status: 'review_asman', icon: '📋', name: 'Review' },
+                    { status: 'approval', icon: '✅', name: 'Approval' },
+                    { status: 'wasdal', icon: '👁️', name: 'Wasdal' },
+                    { status: 'selesai', icon: '✔️', name: 'Selesai' }
+                ];
+
+                container.innerHTML = stages.map(stage => {
+                    const count = pekerjaan.filter(p => p.status === stage.status).length;
+                    return `
+                        <div class="workflow-stage">
+                            <div class="stage-icon">${stage.icon}</div>
+                            <div class="stage-name">${stage.name}</div>
+                            <div class="stage-count">${count}</div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            renderSummaryStats() {
+                const container = document.getElementById('summaryStats');
+                const pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
+
+                const total = pekerjaan.length;
+                const inProgress = pekerjaan.filter(p => p.status !== 'selesai').length;
+                const completed = pekerjaan.filter(p => p.status === 'selesai').length;
+                const sipil = pekerjaan.filter(p => p.kategori === 'sipil').length;
+                const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').length;
+
+                container.innerHTML = `
+                    <div class="stat-card-large">
+                        <div class="stat-icon">📁</div>
+                        <div class="stat-value">${total}</div>
+                        <div class="stat-label">Total Pekerjaan</div>
+                    </div>
+                    <div class="stat-card-large survey">
+                        <div class="stat-icon">🔄</div>
+                        <div class="stat-value">${inProgress}</div>
+                        <div class="stat-label">Sedang Berjalan</div>
+                    </div>
+                    <div class="stat-card-large selesai">
+                        <div class="stat-icon">✔️</div>
+                        <div class="stat-value">${completed}</div>
+                        <div class="stat-label">Selesai</div>
+                    </div>
+                    <div class="stat-card-large drafting">
+                        <div class="stat-icon">🏗️</div>
+                        <div class="stat-value">${sipil}</div>
+                        <div class="stat-label">Bangunan Sipil</div>
+                    </div>
+                    <div class="stat-card-large estimasi">
+                        <div class="stat-icon">🔧</div>
+                        <div class="stat-value">${perpipaan}</div>
+                        <div class="stat-label">Perpipaan</div>
+                    </div>
+                `;
+            },
+
+            renderTable() {
+                const tbody = document.getElementById('pekerjaanTableBody');
+                let pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
+                const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+
+                // Apply filters
+                const filterStatus = document.getElementById('filterStatus').value;
+                const filterKategori = document.getElementById('filterKategori').value;
+
+                if (filterStatus) {
+                    pekerjaan = pekerjaan.filter(p => p.status === filterStatus);
+                }
+                if (filterKategori) {
+                    pekerjaan = pekerjaan.filter(p => p.kategori === filterKategori);
+                }
+
+                pekerjaan.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                if (pekerjaan.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="text-center text-muted" style="padding: 2rem;">
+                                Tidak ada data pekerjaan
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                tbody.innerHTML = pekerjaan.map(item => {
+                    const currentTahap = item.tahapan[item.tahapan.length - 1];
+                    const pelaksanaNames = this.getPelaksanaNames(currentTahap?.pelaksana, pekerja);
+                    const progress = this.calculateProgress(item.status);
+
+                    return `
+                        <tr>
+                            <td>
+                                <strong>${Utils.escapeHtml(item.namaPekerjaan)}</strong>
+                                <div class="text-muted" style="font-size: 0.75rem;">📍 ${Utils.escapeHtml(item.lokasi || '-')}</div>
+                            </td>
+                            <td>
+                                <span class="category-badge ${item.kategori}">${Utils.getCategoryDisplay(item.kategori)}</span>
+                            </td>
+                            <td>
+                                <span class="workflow-status ${Utils.getWorkflowStatusColor(item.status)}">${Utils.getStatusDisplay(item.status)}</span>
+                            </td>
+                            <td>${pelaksanaNames || '-'}</td>
+                            <td>
+                                <div class="progress-mini">
+                                    <div class="bar">
+                                        <div class="bar-fill" style="width: ${progress}%"></div>
+                                    </div>
+                                    <span class="value">${progress}%</span>
+                                </div>
+                            </td>
+                            <td>${Utils.formatDateShort(item.createdAt)}</td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" onclick="Pekerjaan.viewDetail('${item.id}')">
+                                    👁️ Detail
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            },
+
+            renderCategoryLists() {
+                const pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
+                const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+
+                const sipil = pekerjaan.filter(p => p.kategori === 'sipil').slice(0, 5);
+                const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').slice(0, 5);
+
+                document.getElementById('sipiList').innerHTML = this.renderMiniList(sipil, pekerja);
+                document.getElementById('perpipaanList').innerHTML = this.renderMiniList(perpipaan, pekerja);
+            },
+
+            renderMiniList(items, pekerja) {
+                if (items.length === 0) {
+                    return '<div class="empty-state"><span class="empty-icon">📋</span><p>Tidak ada data</p></div>';
+                }
+
+                return items.map(item => {
+                    const progress = this.calculateProgress(item.status);
+                    return `
+                        <div style="padding: var(--spacing-md); border-bottom: 1px solid var(--border-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
+                                <strong style="font-size: 0.875rem;">${Utils.escapeHtml(item.namaPekerjaan)}</strong>
+                                <span class="workflow-status ${Utils.getWorkflowStatusColor(item.status)}" style="font-size: 0.7rem;">${Utils.getStatusDisplay(item.status)}</span>
+                            </div>
+                            <div class="progress-mini">
+                                <div class="bar">
+                                    <div class="bar-fill" style="width: ${progress}%"></div>
+                                </div>
+                                <span class="value">${progress}%</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            getPelaksanaNames(pelaksanaIds, pekerja) {
+                if (!pelaksanaIds || pelaksanaIds.length === 0) return null;
+                const names = pelaksanaIds.map(id => {
+                    const p = pekerja.find(pk => pk.id === id);
+                    return p ? p.nama : null;
+                }).filter(Boolean);
+                return names.join(', ');
+            },
+
+            calculateProgress(status) {
+                const progressMap = {
+                    survey: 15,
+                    drafting: 30,
+                    estimasi: 50,
+                    review_asman: 70,
+                    approval: 85,
+                    wasdal: 95,
+                    selesai: 100
+                };
+                return progressMap[status] || 0;
+            }
+        };
+
+        // Mock App and Dashboard for Pekerjaan module
+        const App = { currentUser: { role: 'manager' } };
+        const Dashboard = { refresh() { DashboardApp.render(); } };
+
+        // Toast module
+        const Toast = {
+            container: null,
+            init() {
+                this.container = document.getElementById('toastContainer');
+            },
+            show(message, type = 'info', duration = 3000) {
+                if (!this.container) this.init();
+                const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <span class="toast-icon">${icons[type] || icons.info}</span>
+                    <span class="toast-message">${message}</span>
+                    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+                `;
+                this.container.appendChild(toast);
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.style.animation = 'slideIn var(--transition-normal) reverse';
+                        setTimeout(() => toast.remove(), 250);
+                    }
+                }, duration);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            DashboardApp.init();
+        });
+    </script>
+</body>
+
+</html>

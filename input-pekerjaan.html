@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Pekerjaan - Laporan Kegiatan Pertek</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --primary-light: #60a5fa;
+            --primary-ghost: rgba(59, 130, 246, 0.1);
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-hover: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border-color: #334155;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-full: 9999px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --transition-fast: 0.15s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            min-height: 100vh;
+            padding: var(--spacing-lg);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-lg);
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-xl);
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .current-user {
+            display: none;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--primary);
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 500;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 2px 8px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+            border-color: var(--primary);
+        }
+
+        .content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* User Selection */
+        .user-selection {
+            text-align: center;
+            padding: var(--spacing-xl);
+        }
+
+        .user-selection h2 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .user-selection p {
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: var(--spacing-lg);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .user-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-xl) var(--spacing-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: center;
+        }
+
+        .user-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 auto var(--spacing-md);
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .user-role {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Content */
+        .main-content {
+            display: none;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl) * 2;
+            color: var(--text-muted);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            display: block;
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success {
+            border-left: 3px solid var(--success);
+        }
+
+        .toast.error {
+            border-left: 3px solid var(--danger);
+        }
+
+        .toast.info {
+            border-left: 3px solid var(--primary);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .user-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>📋 Input Pekerjaan</h1>
+            <div class="header-controls">
+                <div id="currentUser" class="current-user">
+                    <span id="currentUserName">-</span>
+                    <button class="logout-btn" onclick="logout()">Keluar</button>
+                </div>
+                <a href="dashboard-monitoring.html" class="nav-link">📊 Dashboard</a>
+            </div>
+        </header>
+
+        <div class="content">
+            <!-- User Selection -->
+            <div id="userSelection" class="user-selection">
+                <h2>👋 Selamat Datang</h2>
+                <p>Pilih nama Anda untuk masuk ke sistem</p>
+                <div id="userGrid" class="user-grid">
+                    <!-- Users will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div id="mainContent" class="main-content">
+                <div class="section-title">
+                    <span>📁 Daftar Pekerjaan</span>
+                    <button id="btnAdd" class="btn btn-primary" style="display:none;">+ Input Pekerjaan Baru</button>
+                </div>
+                <div class="empty-state">
+                    <span class="empty-icon">📋</span>
+                    <p>Belum ada pekerjaan</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Modal Title</h3>
+                <button class="modal-close" id="modalClose">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+            <div class="modal-footer" id="modalFooter">
+                <button class="btn btn-secondary" id="btnModalCancel">Batal</button>
+                <button class="btn btn-primary" id="btnModalSave">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- External Scripts -->
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/storage.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/modal.js"></script>
+
+    <script>
+        // User Data
+        const users = [
+            { id: 'dadi', nama: 'Dadi Riswadi', role: 'manager', roleDisplay: '👔 Manager Divisi' },
+            { id: 'riko', nama: 'Riko Komara', role: 'asman_sipil', roleDisplay: '🏗️ Asman Bangunan Sipil' },
+            { id: 'sulaeman', nama: 'M. Sulaeman', role: 'asman_perpipaan', roleDisplay: '🔧 Asman Perpipaan' },
+            { id: 'dian', nama: 'Dian Suhendrik', role: 'staf', roleDisplay: '👷 Staf' },
+            { id: 'yunia', nama: 'Yunia', role: 'staf', roleDisplay: '👷 Staf' },
+            { id: 'andit', nama: 'Andit', role: 'staf', roleDisplay: '👷 Staf' },
+            { id: 'aldy', nama: 'Aldy', role: 'staf', roleDisplay: '👷 Staf' },
+            { id: 'fahry', nama: 'Fahry', role: 'staf', roleDisplay: '👷 Staf' }
+        ];
+
+        let currentUser = null;
+
+        // Mock App object for compatibility with Pekerjaan module
+        const App = {
+            get currentUser() {
+                return currentUser;
+            }
+        };
+
+        // Mock Dashboard object
+        const Dashboard = {
+            refresh() {
+                renderPekerjaanList();
+            }
+        };
+
+        // Toast module
+        const Toast = {
+            container: null,
+            init() {
+                this.container = document.getElementById('toastContainer');
+            },
+            show(message, type = 'info', duration = 3000) {
+                if (!this.container) this.init();
+                const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+                const toast = document.createElement('div');
+                toast.className = `toast ${type}`;
+                toast.innerHTML = `
+                    <span class="toast-icon">${icons[type] || icons.info}</span>
+                    <span class="toast-message">${message}</span>
+                    <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+                `;
+                this.container.appendChild(toast);
+                setTimeout(() => {
+                    if (toast.parentElement) {
+                        toast.remove();
+                    }
+                }, duration);
+            }
+        };
+
+        // Render user cards on page load
+        function renderUsers() {
+            const grid = document.getElementById('userGrid');
+            let html = '';
+
+            for (let i = 0; i < users.length; i++) {
+                const u = users[i];
+                const parts = u.nama.split(' ');
+                const initials = (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase();
+
+                html += '<div class="user-card" onclick="selectUser(\'' + u.id + '\')">';
+                html += '<div class="user-avatar">' + initials + '</div>';
+                html += '<div class="user-name">' + u.nama + '</div>';
+                html += '<div class="user-role">' + u.roleDisplay + '</div>';
+                html += '</div>';
+            }
+
+            grid.innerHTML = html;
+        }
+
+        function selectUser(userId) {
+            for (let i = 0; i < users.length; i++) {
+                if (users[i].id === userId) {
+                    currentUser = users[i];
+                    break;
+                }
+            }
+
+            if (currentUser) {
+                document.getElementById('userSelection').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('currentUser').style.display = 'flex';
+                document.getElementById('currentUserName').textContent = '👤 ' + currentUser.nama;
+
+                // Show add button for management (manager, asman_sipil, asman_perpipaan)
+                if (currentUser.role === 'manager' || currentUser.role === 'asman_sipil' || currentUser.role === 'asman_perpipaan') {
+                    document.getElementById('btnAdd').style.display = '';
+                }
+
+                localStorage.setItem('pertek_user', currentUser.id);
+                Toast.show('Selamat datang, ' + currentUser.nama + '!', 'success');
+
+                // Render pekerjaan list
+                renderPekerjaanList();
+            }
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('pertek_user');
+            document.getElementById('userSelection').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('currentUser').style.display = 'none';
+            document.getElementById('btnAdd').style.display = 'none';
+            Toast.show('Anda telah keluar', 'info');
+        }
+
+        function showToast(message, type) {
+            Toast.show(message, type);
+        }
+
+        // Render pekerjaan list
+        function renderPekerjaanList() {
+            const container = document.querySelector('.empty-state');
+            if (!container) return;
+
+            let pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
+            const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+
+            if (pekerjaan.length === 0) {
+                container.innerHTML = `
+                    <span class="empty-icon">📋</span>
+                    <p>Belum ada pekerjaan</p>
+                    <p style="font-size: 0.875rem; color: var(--text-muted);">Klik "+ Input Pekerjaan Baru" untuk membuat</p>
+                `;
+                return;
+            }
+
+            // Sort by latest
+            pekerjaan.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            const progressMap = {
+                survey: 15, drafting: 30, estimasi: 50,
+                review_asman: 70, approval: 85, wasdal: 95, selesai: 100
+            };
+
+            container.className = '';
+            container.innerHTML = pekerjaan.map(item => {
+                const progress = progressMap[item.status] || 0;
+                const currentTahap = item.tahapan[item.tahapan.length - 1];
+                const pelaksanaNames = currentTahap?.pelaksana?.map(id => {
+                    const p = pekerja.find(pk => pk.id === id);
+                    return p ? p.nama : null;
+                }).filter(Boolean).join(', ') || '-';
+
+                return `
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: var(--spacing-lg); margin-bottom: var(--spacing-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-md);">
+                            <div>
+                                <h3 style="margin-bottom: var(--spacing-xs);">${Utils.escapeHtml(item.namaPekerjaan)}</h3>
+                                <div style="display: flex; gap: var(--spacing-sm); flex-wrap: wrap;">
+                                    <span class="category-badge ${item.kategori}">${Utils.getCategoryDisplay(item.kategori)}</span>
+                                    <span style="color: var(--text-muted); font-size: 0.875rem;">📍 ${Utils.escapeHtml(item.lokasi || '-')}</span>
+                                </div>
+                            </div>
+                            <span class="workflow-status ${Utils.getWorkflowStatusColor(item.status)}">${Utils.getStatusDisplay(item.status)}</span>
+                        </div>
+                        <div style="margin-bottom: var(--spacing-md);">
+                            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                                <div class="progress-bar-container" style="flex: 1; height: 6px;">
+                                    <div class="progress-bar" style="width: ${progress}%"></div>
+                                </div>
+                                <span style="font-size: 0.875rem; font-weight: 600;">${progress}%</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.875rem;">
+                            <span style="color: var(--text-muted);">Pelaksana: ${pelaksanaNames}</span>
+                            <div style="display: flex; gap: var(--spacing-sm);">
+                                <button class="btn btn-secondary btn-sm" onclick="viewDetail('${item.id}')">👁️ Detail</button>
+                                ${item.status !== 'selesai' ? `<button class="btn btn-primary btn-sm" onclick="showHandoffForm('${item.id}')">➡️ Lanjutkan</button>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Show input form for new pekerjaan
+        function showInputForm() {
+            const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+
+            const pekerjaCheckboxes = pekerja.map(p => `
+                <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-xs) 0; cursor: pointer;">
+                    <input type="checkbox" name="surveyors" value="${p.id}">
+                    <span>${Utils.escapeHtml(p.nama)} (${Utils.getRoleDisplay(p.role)})</span>
+                </label>
+            `).join('');
+
+            const today = Utils.formatDateInput(new Date());
+
+            const content = `
+                <form id="formPekerjaan">
+                    <div class="form-group">
+                        <label class="form-label">Nama Pekerjaan</label>
+                        <input type="text" name="namaPekerjaan" class="form-input" required placeholder="Contoh: Pembangunan Gedung Kantor">
+                    </div>
+
+                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                        <div class="form-group">
+                            <label class="form-label">Kategori</label>
+                            <select name="kategori" class="form-select" required>
+                                <option value="">Pilih Kategori</option>
+                                <option value="sipil">🏗️ Bangunan Sipil</option>
+                                <option value="perpipaan">🔧 Perpipaan</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tanggal Survey</label>
+                            <input type="date" name="tanggalSurvey" class="form-input" value="${today}" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Lokasi</label>
+                        <input type="text" name="lokasi" class="form-input" placeholder="Alamat lokasi pekerjaan">
+                    </div>
+
+                    <div style="background: var(--bg-tertiary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
+                        <h4 style="margin-bottom: var(--spacing-md); font-size: 0.875rem; color: var(--text-secondary);">🔍 Tim Survey (pilih 2-3 orang)</h4>
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-xs);">
+                            ${pekerjaCheckboxes || '<p style="color: var(--text-muted);">Belum ada pekerja.</p>'}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Catatan Survey</label>
+                        <textarea name="catatan" class="form-textarea" rows="3" placeholder="Hasil pengamatan, kondisi lapangan, dll..."></textarea>
+                    </div>
+                </form>
+            `;
+
+            Modal.open({
+                title: '📍 Input Pekerjaan Baru (Survey)',
+                content,
+                size: 'large',
+                onSave: (data) => {
+                    if (!data.namaPekerjaan || !data.namaPekerjaan.trim()) {
+                        Toast.show('Nama pekerjaan harus diisi', 'error');
+                        return false;
+                    }
+
+                    if (!data.kategori) {
+                        Toast.show('Kategori harus dipilih', 'error');
+                        return false;
+                    }
+
+                    // Get selected surveyors
+                    const selectedSurveyors = [];
+                    document.querySelectorAll('input[name="surveyors"]:checked').forEach(cb => {
+                        selectedSurveyors.push(cb.value);
+                    });
+
+                    if (selectedSurveyors.length < 2) {
+                        Toast.show('Pilih minimal 2 surveyor', 'error');
+                        return false;
+                    }
+
+                    if (selectedSurveyors.length > 3) {
+                        Toast.show('Maksimal 3 surveyor', 'error');
+                        return false;
+                    }
+
+                    // Create pekerjaan
+                    const pekerjaan = {
+                        namaPekerjaan: data.namaPekerjaan.trim(),
+                        kategori: data.kategori,
+                        lokasi: (data.lokasi || '').trim(),
+                        status: 'survey',
+                        tahapan: [{
+                            status: 'survey',
+                            pelaksana: selectedSurveyors,
+                            tanggalMulai: data.tanggalSurvey,
+                            tanggalSelesai: null,
+                            catatan: (data.catatan || '').trim(),
+                            dokumen: []
+                        }]
+                    };
+
+                    Storage.add(Storage.KEYS.PEKERJAAN, pekerjaan);
+                    Toast.show('Pekerjaan berhasil dibuat!', 'success');
+                    renderPekerjaanList();
+                    return true;
+                }
+            });
+        }
+
+        // View pekerjaan detail
+        function viewDetail(id) {
+            const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, id);
+            if (!pekerjaan) return;
+
+            const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+            const progressMap = {
+                survey: 15, drafting: 30, estimasi: 50,
+                review_asman: 70, approval: 85, wasdal: 95, selesai: 100
+            };
+            const progress = progressMap[pekerjaan.status] || 0;
+
+            const timelineHtml = pekerjaan.tahapan.map((tahap, index) => {
+                const isActive = index === pekerjaan.tahapan.length - 1 && pekerjaan.status !== 'selesai';
+                const pelaksanaNames = tahap.pelaksana?.map(pId => {
+                    const p = pekerja.find(pk => pk.id === pId);
+                    return p ? p.nama : null;
+                }).filter(Boolean).join(', ') || '-';
+
+                return `
+                    <div style="display: flex; gap: var(--spacing-md); padding: var(--spacing-md); background: ${isActive ? 'var(--primary-ghost)' : 'var(--bg-tertiary)'}; border-radius: var(--radius-md); margin-bottom: var(--spacing-sm); border-left: 3px solid ${isActive ? 'var(--primary)' : 'var(--success)'};">
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: var(--spacing-xs);">
+                                <span class="workflow-status ${Utils.getWorkflowStatusColor(tahap.status)}">${Utils.getStatusDisplay(tahap.status)}</span>
+                                <span style="font-size: 0.75rem; color: var(--text-muted);">
+                                    ${Utils.formatDateShort(tahap.tanggalMulai)}
+                                    ${tahap.tanggalSelesai ? ' - ' + Utils.formatDateShort(tahap.tanggalSelesai) : ' (berlangsung)'}
+                                </span>
+                            </div>
+                            <p style="font-size: 0.875rem;"><strong>Pelaksana:</strong> ${pelaksanaNames}</p>
+                            ${tahap.catatan ? `<p style="font-size: 0.875rem; color: var(--text-secondary);">${Utils.escapeHtml(tahap.catatan)}</p>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const content = `
+                <div>
+                    <h2 style="margin-bottom: var(--spacing-sm);">${Utils.escapeHtml(pekerjaan.namaPekerjaan)}</h2>
+                    <div style="display: flex; gap: var(--spacing-md); flex-wrap: wrap; margin-bottom: var(--spacing-lg);">
+                        <span class="category-badge ${pekerjaan.kategori}">${Utils.getCategoryDisplay(pekerjaan.kategori)}</span>
+                        <span class="workflow-status ${Utils.getWorkflowStatusColor(pekerjaan.status)}">${Utils.getStatusDisplay(pekerjaan.status)}</span>
+                        <span style="color: var(--text-muted);">📍 ${Utils.escapeHtml(pekerjaan.lokasi || '-')}</span>
+                    </div>
+
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                            <span>Progress:</span>
+                            <div class="progress-bar-container" style="flex: 1; height: 10px;">
+                                <div class="progress-bar" style="width: ${progress}%"></div>
+                            </div>
+                            <span style="font-weight: 600;">${progress}%</span>
+                        </div>
+                    </div>
+
+                    <h4 style="margin-bottom: var(--spacing-md);">📋 Timeline Pekerjaan</h4>
+                    ${timelineHtml}
+                </div>
+            `;
+
+            Modal.open({
+                title: 'Detail Pekerjaan',
+                content,
+                size: 'large',
+                showFooter: false
+            });
+        }
+
+        // Show handoff form
+        function showHandoffForm(id) {
+            const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, id);
+            if (!pekerjaan) return;
+
+            const nextStatus = Utils.getNextWorkflowStatus(pekerjaan.status);
+            if (!nextStatus) {
+                Toast.show('Pekerjaan sudah selesai', 'info');
+                return;
+            }
+
+            const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+            const today = Utils.formatDateInput(new Date());
+
+            const pelaksanaOptions = pekerja.map(p =>
+                `<option value="${p.id}">${Utils.escapeHtml(p.nama)} (${Utils.getRoleDisplay(p.role)})</option>`
+            ).join('');
+
+            const content = `
+                <form id="formHandoff">
+                    <div style="background: var(--bg-tertiary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
+                        <p style="color: var(--text-muted); margin-bottom: var(--spacing-sm);">Pekerjaan:</p>
+                        <h3>${Utils.escapeHtml(pekerjaan.namaPekerjaan)}</h3>
+                        <p style="margin-top: var(--spacing-sm);">
+                            Status: <span class="workflow-status ${Utils.getWorkflowStatusColor(pekerjaan.status)}">${Utils.getStatusDisplay(pekerjaan.status)}</span>
+                            → <span class="workflow-status ${Utils.getWorkflowStatusColor(nextStatus)}">${Utils.getStatusDisplay(nextStatus)}</span>
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Catatan Penyelesaian Tahap ${Utils.getStatusDisplay(pekerjaan.status)}</label>
+                        <textarea name="catatanSelesai" class="form-textarea" rows="2" placeholder="Catatan penyelesaian..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Tanggal Mulai ${Utils.getStatusDisplay(nextStatus)}</label>
+                        <input type="date" name="tanggalMulai" class="form-input" value="${today}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Pelaksana ${Utils.getStatusDisplay(nextStatus)}</label>
+                        <select name="pelaksanaId" class="form-select" required>
+                            <option value="">Pilih Pelaksana</option>
+                            ${pelaksanaOptions}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Instruksi / Catatan</label>
+                        <textarea name="catatan" class="form-textarea" rows="2" placeholder="Instruksi untuk pelaksana..."></textarea>
+                    </div>
+                </form>
+            `;
+
+            Modal.open({
+                title: `➡️ Lanjutkan ke ${Utils.getStatusDisplay(nextStatus)}`,
+                content,
+                size: 'large',
+                onSave: (data) => {
+                    if (!data.pelaksanaId) {
+                        Toast.show('Pilih pelaksana', 'error');
+                        return false;
+                    }
+
+                    // Complete current stage
+                    const currentTahap = pekerjaan.tahapan[pekerjaan.tahapan.length - 1];
+                    currentTahap.tanggalSelesai = Utils.formatDateInput(new Date());
+                    if (data.catatanSelesai) {
+                        currentTahap.catatan = (currentTahap.catatan ? currentTahap.catatan + '\n\n' : '') +
+                            'Catatan penyelesaian: ' + data.catatanSelesai;
+                    }
+
+                    // Add new stage
+                    pekerjaan.tahapan.push({
+                        status: nextStatus,
+                        pelaksana: [data.pelaksanaId],
+                        tanggalMulai: data.tanggalMulai,
+                        tanggalSelesai: null,
+                        catatan: data.catatan || '',
+                        dokumen: []
+                    });
+
+                    // Update status
+                    pekerjaan.status = nextStatus;
+
+                    Storage.update(Storage.KEYS.PEKERJAAN, id, pekerjaan);
+                    Toast.show(`Pekerjaan dilanjutkan ke ${Utils.getStatusDisplay(nextStatus)}`, 'success');
+                    renderPekerjaanList();
+                    return true;
+                }
+            });
+        }
+
+        // Check saved user
+        function checkSavedUser() {
+            const savedId = localStorage.getItem('pertek_user');
+            if (savedId) {
+                selectUser(savedId);
+            }
+        }
+
+        // Initialize
+        window.onload = function () {
+            Toast.init();
+            Modal.init();
+            renderUsers();
+            checkSavedUser();
+
+            // Bind add button
+            document.getElementById('btnAdd').addEventListener('click', showInputForm);
+        };
+    </script>
+</body>
+
+</html>
