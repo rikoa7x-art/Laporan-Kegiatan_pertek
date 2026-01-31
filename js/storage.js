@@ -147,11 +147,38 @@ const Storage = {
 
     // --- CLOUD SYNC (FIREBASE) ---
 
+    // Default Firebase Configuration
+    DEFAULT_CONFIG: {
+        apiKey: 'AIzaSyC_Cf-Sp3DJHXIC88158-FrYdyotoUJfQE',
+        databaseURL: 'https://laporan-kegiatan-pertek-default-rtdb.asia-southeast1.firebasedatabase.app',
+        projectId: 'laporan-kegiatan-pertek',
+        autoSync: true
+    },
+
     config: {
         apiKey: localStorage.getItem('pertek_firebase_apiKey') || '',
         databaseURL: localStorage.getItem('pertek_firebase_databaseURL') || '',
         projectId: localStorage.getItem('pertek_firebase_projectId') || '',
         autoSync: localStorage.getItem('pertek_auto_sync') === 'true'
+    },
+
+    /**
+     * Initialize config with defaults if not set
+     */
+    initDefaultConfig() {
+        // Jika belum ada config di localStorage, gunakan default
+        if (!this.config.apiKey && this.DEFAULT_CONFIG.apiKey !== 'YOUR_FIREBASE_API_KEY') {
+            this.config.apiKey = this.DEFAULT_CONFIG.apiKey;
+            this.config.databaseURL = this.DEFAULT_CONFIG.databaseURL;
+            this.config.projectId = this.DEFAULT_CONFIG.projectId;
+            this.config.autoSync = this.DEFAULT_CONFIG.autoSync;
+
+            // Simpan ke localStorage
+            localStorage.setItem('pertek_firebase_apiKey', this.config.apiKey);
+            localStorage.setItem('pertek_firebase_databaseURL', this.config.databaseURL);
+            localStorage.setItem('pertek_firebase_projectId', this.config.projectId);
+            localStorage.setItem('pertek_auto_sync', this.config.autoSync);
+        }
     },
 
     db: null,
@@ -304,6 +331,7 @@ const Storage = {
 
 // Initialize sample data and cloud on load
 document.addEventListener('DOMContentLoaded', async () => {
+    Storage.initDefaultConfig(); // Load default Firebase config first
     Storage.initSampleData();
     if (Storage.initCloud() && Storage.config.autoSync) {
         // Automatic pull on startup to get latest data from other devices
