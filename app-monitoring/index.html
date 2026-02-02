@@ -569,7 +569,7 @@
                 tbody.innerHTML = pekerjaan.map(item => {
                     const currentTahap = item.tahapan[item.tahapan.length - 1];
                     const pelaksanaNames = this.getPelaksanaNames(currentTahap?.pelaksana, pekerja);
-                    const progress = this.calculateProgress(item.status);
+                    const progress = this.calculateProgress(item);
 
                     let agingWarning = '';
                     if (['drafting', 'estimasi'].includes(item.status)) {
@@ -636,7 +636,7 @@
                 }
 
                 return items.map(item => {
-                    const progress = this.calculateProgress(item.status);
+                    const progress = this.calculateProgress(item);
                     return `
                         <div style="padding: var(--spacing-md); border-bottom: 1px solid var(--border-color);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
@@ -663,7 +663,11 @@
                 return names.join(', ');
             },
 
-            calculateProgress(status) {
+            calculateProgress(item) {
+                if (item.kategori === 'pengawasan' && item.progress !== undefined) {
+                    return item.progress;
+                }
+                const status = item.status;
                 const progressMap = {
                     survey: 15,
                     drafting: 30,

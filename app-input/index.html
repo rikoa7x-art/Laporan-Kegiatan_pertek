@@ -536,7 +536,7 @@
 
             container.className = '';
             container.innerHTML = pekerjaan.map(item => {
-                const progress = progressMap[item.status] || 0;
+                const progress = item.kategori === 'pengawasan' && item.progress !== undefined ? item.progress : (progressMap[item.status] || 0);
                 const currentTahap = item.tahapan[item.tahapan.length - 1];
                 const pelaksanaNames = currentTahap?.pelaksana?.map(id => {
                     const p = pekerja.find(pk => pk.id === id);
@@ -665,9 +665,29 @@
                                 <option value="">-- Pilih Pekerjaan --</option>
                                 ${pekerjaanOptions || '<option value="" disabled>Tidak ada pekerjaan yang tersedia</option>'}
                             </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Progress Pekerjaan</label>
+                            <select name="progressPengawasan" id="selectProgress" class="form-select">
+                                <option value="">-- Pilih Progress --</option>
+                                <option value="25">📊 Progress 25%</option>
+                                <option value="50">📊 Progress 50%</option>
+                                <option value="75">📊 Progress 75%</option>
+                                <option value="100">✅ Selesai 100%</option>
+                            </select>
                             <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--spacing-xs);">
-                                Pengawasan hanya dapat dilakukan pada pekerjaan yang sudah ada dan belum selesai.
+                                Pilih persentase progres fisik pekerjaan saat ini.
                             </p>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">📷 Foto Dokumentasi Progress</label>
+                            <input type="file" id="fotoPengawasan" class="form-input" accept=".jpg,.jpeg,.png" multiple style="padding: var(--spacing-sm);">
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--spacing-xs);">
+                                Upload foto kondisi pekerjaan (maks. 5 foto)
+                            </p>
+                            <div id="fotoPreview" style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm); margin-top: var(--spacing-sm);"></div>
                         </div>
                     </div>
 
@@ -698,6 +718,53 @@
                     const labelCatatan = document.getElementById('labelCatatan');
                     const inputNama = document.querySelector('input[name="namaPekerjaan"]');
                     const selectLokasi = document.querySelector('select[name="lokasi"]');
+
+                    // Store uploaded photos for pengawasan
+                    window._uploadedFotos = [];
+
+                    // Handle foto upload for pengawasan
+                    const fotoInput = document.getElementById('fotoPengawasan');
+                    const fotoPreview = document.getElementById('fotoPreview');
+
+                    if (fotoInput) {
+                        fotoInput.addEventListener('change', async (e) => {
+                            const files = Array.from(e.target.files);
+
+                            if (files.length + window._uploadedFotos.length > 5) {
+                                Toast.show('Maksimal 5 foto', 'error');
+                                fotoInput.value = '';
+                                return;
+                            }
+
+                            for (const file of files) {
+                                if (file.size > 5 * 1024 * 1024) {
+                                    Toast.show(`File ${file.name} terlalu besar (maks. 5MB)`, 'error');
+                                    continue;
+                                }
+
+                                const base64 = await fileToBase64(file);
+                                const fileData = {
+                                    name: file.name,
+                                    type: file.type,
+                                    size: file.size,
+                                    data: base64,
+                                    uploadedAt: new Date().toISOString()
+                                };
+                                window._uploadedFotos.push(fileData);
+
+                                // Add preview
+                                const previewItem = document.createElement('div');
+                                previewItem.style.cssText = 'position: relative; width: 60px; height: 60px; border-radius: var(--radius-sm); overflow: hidden;';
+                                previewItem.innerHTML = `
+                                    <img src="${base64}" style="width: 100%; height: 100%; object-fit: cover;">
+                                    <button type="button" onclick="this.parentElement.remove(); window._uploadedFotos = window._uploadedFotos.filter(f => f.name !== '${file.name}')" style="position: absolute; top: 2px; right: 2px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; cursor: pointer; font-size: 10px;">✕</button>
+                                `;
+                                fotoPreview.appendChild(previewItem);
+                            }
+
+                            fotoInput.value = '';
+                        });
+                    }
 
                     selectKategori.addEventListener('change', () => {
                         const isPengawasan = selectKategori.value === 'pengawasan';
@@ -742,6 +809,13 @@
                             return false;
                         }
 
+                        // Get progress
+                        const progressValue = document.getElementById('selectProgress').value;
+                        if (!progressValue) {
+                            Toast.show('Pilih progress pekerjaan', 'error');
+                            return false;
+                        }
+
                         // Get selected pengawas
                         const selectedPengawas = [];
                         document.querySelectorAll('input[name="surveyors"]:checked').forEach(cb => {
@@ -758,6 +832,12 @@
                             return false;
                         }
 
+                        // Validate foto (at least 1 photo required)
+                        if (!window._uploadedFotos || window._uploadedFotos.length === 0) {
+                            Toast.show('Upload minimal 1 foto dokumentasi', 'error');
+                            return false;
+                        }
+
                         // Get the selected pekerjaan
                         const targetPekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, pekerjaanId);
                         if (!targetPekerjaan) {
@@ -765,25 +845,29 @@
                             return false;
                         }
 
+                        const progressInt = parseInt(progressValue);
+                        const progressLabel = progressInt === 100 ? 'Selesai 100%' : `Progress ${progressInt}%`;
+
                         // Create pengawasan record linked to existing pekerjaan
                         const pengawasan = {
-                            namaPekerjaan: `Pengawasan: ${targetPekerjaan.namaPekerjaan}`,
+                            namaPekerjaan: `Pengawasan ${progressLabel}: ${targetPekerjaan.namaPekerjaan}`,
                             kategori: 'pengawasan',
                             lokasi: targetPekerjaan.lokasi,
                             pekerjaanRef: pekerjaanId, // Reference to the supervised pekerjaan
-                            status: 'wasdal',
+                            progress: progressInt, // Store progress percentage
+                            status: progressInt === 100 ? 'selesai' : 'wasdal',
                             tahapan: [{
-                                status: 'wasdal',
+                                status: progressInt === 100 ? 'selesai' : 'wasdal',
                                 pelaksana: selectedPengawas,
                                 tanggalMulai: data.tanggalSurvey,
-                                tanggalSelesai: null,
-                                catatan: (data.catatan || '').trim(),
-                                dokumen: []
+                                tanggalSelesai: progressInt === 100 ? data.tanggalSurvey : null,
+                                catatan: `${progressLabel}\n${(data.catatan || '').trim()}`,
+                                dokumen: window._uploadedFotos || []
                             }]
                         };
 
                         Storage.add(Storage.KEYS.PEKERJAAN, pengawasan);
-                        Toast.show('Pengawasan berhasil ditambahkan!', 'success');
+                        Toast.show(`Pengawasan ${progressLabel} berhasil ditambahkan!`, 'success');
 
                     } else {
                         // Mode normal - buat pekerjaan baru
@@ -844,7 +928,7 @@
                 survey: 15, drafting: 30, estimasi: 50,
                 review_asman: 70, approval: 85, wasdal: 95, selesai: 100
             };
-            const progress = progressMap[pekerjaan.status] || 0;
+            const progress = pekerjaan.kategori === 'pengawasan' && pekerjaan.progress !== undefined ? pekerjaan.progress : (progressMap[pekerjaan.status] || 0);
 
             // Store dokumen globally for access in onclick handlers
             window._currentDokumen = [];

@@ -90,7 +90,7 @@ const Pekerjaan = {
             const statusColor = Utils.getWorkflowStatusColor(item.status);
             const currentTahap = item.tahapan[item.tahapan.length - 1];
             const pelaksanaNames = this.getPelaksanaNames(currentTahap?.pelaksana, pekerja);
-            const progress = this.calculateProgress(item.status);
+            const progress = this.calculateProgress(item);
 
             // Check if current user is assigned to this task's current stage
             const isAssigned = currentUser && currentTahap?.pelaksana?.includes(currentUser.id);
@@ -164,7 +164,11 @@ const Pekerjaan = {
     /**
      * Calculate progress based on status
      */
-    calculateProgress(status) {
+    calculateProgress(item) {
+        if (item.kategori === 'pengawasan' && item.progress !== undefined) {
+            return item.progress;
+        }
+        const status = item.status;
         const progressMap = {
             survey: 15,
             drafting: 30,
@@ -425,7 +429,7 @@ const Pekerjaan = {
         if (!pekerjaan) return;
 
         const pekerja = Storage.get(Storage.KEYS.PEKERJA);
-        const progress = this.calculateProgress(pekerjaan.status);
+        const progress = this.calculateProgress(pekerjaan);
 
         // Store dokumen globally for view/download handlers
         window._currentDokumen = [];
