@@ -502,7 +502,7 @@
                 const completed = pekerjaan.filter(p => p.status === 'selesai').length;
                 const sipil = pekerjaan.filter(p => p.kategori === 'sipil').length;
                 const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').length;
-                const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan').length;
+                const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan' || p.status === 'wasdal').length;
 
                 console.log('Summary Stats:', { total, inProgress, completed, sipil, perpipaan, pengawasan });
 
@@ -647,7 +647,7 @@
 
                 const sipil = pekerjaan.filter(p => p.kategori === 'sipil').slice(0, 5);
                 const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').slice(0, 5);
-                const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan');
+                const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan' || p.status === 'wasdal');
 
                 console.log('Category Lists render:', {
                     totalPekerjaan: pekerjaan.length,
