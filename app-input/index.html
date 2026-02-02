@@ -904,38 +904,65 @@
             };
         };
 
-        // Sync hardcoded users to pekerja storage
+        // Sync hardcoded users to pekerja storage (replace entirely to avoid duplicates)
         function syncUsersToPekerja() {
-            let pekerja = Storage.get(Storage.KEYS.PEKERJA);
+            let existingPekerja = Storage.get(Storage.KEYS.PEKERJA);
 
-            // Map existing pekerja by their id for quick lookup
-            const existingIds = new Set(pekerja.map(p => p.id));
-
-            // Add/update users to pekerja
-            users.forEach(user => {
-                if (!existingIds.has(user.id)) {
-                    // Add new user as pekerja without using Storage.add (to preserve ID)
-                    pekerja.push({
-                        id: user.id,
-                        nama: user.nama,
-                        role: user.role,
-                        roleDisplay: user.roleDisplay,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString()
-                    });
-                } else {
-                    // Update existing pekerja's name/role if different
-                    const idx = pekerja.findIndex(p => p.id === user.id);
-                    if (idx !== -1) {
-                        pekerja[idx].nama = user.nama;
-                        pekerja[idx].role = user.role;
-                        pekerja[idx].roleDisplay = user.roleDisplay;
-                        pekerja[idx].updatedAt = new Date().toISOString();
-                    }
+            // Build mapping from old IDs (by name) to new IDs
+            const nameToOldId = {};
+            existingPekerja.forEach(p => {
+                if (p.nama && p.id) {
+                    nameToOldId[p.nama] = p.id;
                 }
             });
 
-            Storage.set(Storage.KEYS.PEKERJA, pekerja);
+            // Build mapping from old ID to new ID (for migration)
+            const oldToNewId = {};
+            users.forEach(user => {
+                const oldId = nameToOldId[user.nama];
+                if (oldId && oldId !== user.id) {
+                    oldToNewId[oldId] = user.id;
+                }
+            });
+
+            // Replace pekerja with clean user data
+            const cleanPekerja = users.map(user => ({
+                id: user.id,
+                nama: user.nama,
+                role: user.role,
+                roleDisplay: user.roleDisplay,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString()
+            }));
+
+            Storage.set(Storage.KEYS.PEKERJA, cleanPekerja);
+
+            // Migrate pekerjaan pelaksana IDs if needed
+            if (Object.keys(oldToNewId).length > 0) {
+                let pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
+                let needsUpdate = false;
+
+                pekerjaan.forEach(p => {
+                    if (p.tahapan && Array.isArray(p.tahapan)) {
+                        p.tahapan.forEach(t => {
+                            if (t.pelaksana && Array.isArray(t.pelaksana)) {
+                                t.pelaksana = t.pelaksana.map(id => {
+                                    if (oldToNewId[id]) {
+                                        needsUpdate = true;
+                                        return oldToNewId[id];
+                                    }
+                                    return id;
+                                });
+                            }
+                        });
+                    }
+                });
+
+                if (needsUpdate) {
+                    Storage.set(Storage.KEYS.PEKERJAAN, pekerjaan);
+                    console.log('Migrated pelaksana IDs to new format');
+                }
+            }
         }
     </script>
 </body>
