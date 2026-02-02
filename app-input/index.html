@@ -806,7 +806,7 @@
                         // Mode pengawasan - pilih pekerjaan yang sudah ada
                         const pekerjaanId = document.getElementById('selectPekerjaan').value;
                         const progressValue = document.getElementById('selectProgress').value;
-                        const selectedPengawas = Array.from(document.getElementById('selectPengawas').selectedOptions).map(o => o.value);
+                        const selectedPengawas = Array.from(document.querySelectorAll('input[name="surveyors"]:checked')).map(cb => cb.value);
 
                         console.log('Data:', { pekerjaanId, progressValue, selectedPengawas });
 
@@ -868,7 +868,8 @@
                         console.log('Saving Pengawasan:', pengawasan);
                         Storage.add(Storage.KEYS.PEKERJAAN, pengawasan);
                         Toast.show(`Pengawasan ${progressLabel} berhasil ditambahkan!`, 'success');
-                        Modal.hide();
+                        renderPekerjaanList();
+                        return true;
 
                     } else {
                         // Mode normal - buat pekerjaan baru
