@@ -744,7 +744,7 @@
                 }
             });
 
-            // Replace pekerja with clean user data
+            // Replace pekerja with clean user data if different
             const cleanPekerja = users.map(user => ({
                 id: user.id,
                 nama: user.nama,
@@ -754,7 +754,13 @@
                 updatedAt: new Date().toISOString()
             }));
 
-            Storage.set(Storage.KEYS.PEKERJA, cleanPekerja);
+            // Only update if there are actual changes (excluding timestamps)
+            const workersChanged = cleanPekerja.length !== existingPekerja.length ||
+                cleanPekerja.some((p, i) => p.id !== existingPekerja[i]?.id || p.nama !== existingPekerja[i]?.nama);
+
+            if (workersChanged) {
+                Storage.set(Storage.KEYS.PEKERJA, cleanPekerja);
+            }
 
             // Migrate pekerjaan pelaksana IDs if needed
             if (Object.keys(oldToNewId).length > 0) {

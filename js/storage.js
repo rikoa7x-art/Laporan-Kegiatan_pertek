@@ -41,7 +41,7 @@ const Storage = {
         try {
             localStorage.setItem(key, JSON.stringify(data));
             if (this.config.autoSync && !skipSync) {
-                this.push();
+                this.push(key);
             }
         } catch (error) {
             console.error('Error saving to storage:', error);
@@ -279,20 +279,26 @@ const Storage = {
     /**
      * Push current local data to cloud
      */
-    async push() {
+    async push(specificKey = null) {
         if (!this.initCloud()) return { success: false, message: 'Firebase not configured' };
 
         try {
-            const keys = Object.values(this.KEYS);
-            const uploadData = {};
+            if (specificKey) {
+                // Push only one specific key
+                await this.db.ref(`pertek_data/${specificKey}`).set(this.get(specificKey));
+                return { success: true, message: `Key ${specificKey} pushed to cloud` };
+            } else {
+                // Push everything
+                const keys = Object.values(this.KEYS);
+                const uploadData = {};
 
-            for (const key of keys) {
-                uploadData[key] = this.get(key);
+                for (const key of keys) {
+                    uploadData[key] = this.get(key);
+                }
+
+                await this.db.ref('pertek_data').set(uploadData);
+                return { success: true, message: 'Full data pushed to cloud' };
             }
-
-            await this.db.ref('pertek_data').set(uploadData);
-
-            return { success: true, message: 'Data pushed to cloud' };
         } catch (error) {
             console.error('Firebase push error:', error);
             return { success: false, message: error.message };
