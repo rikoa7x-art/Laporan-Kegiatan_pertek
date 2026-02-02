@@ -580,9 +580,9 @@
             const pekerja = Storage.get(Storage.KEYS.PEKERJA);
             const existingPekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
 
-            // Filter pekerjaan yang belum selesai untuk pengawasan
+            // Filter pekerjaan yang sudah/sedang diwasdal (setelah approval)
             const pekerjaanForWasdal = existingPekerjaan.filter(p =>
-                p.status !== 'selesai' && p.kategori !== 'pengawasan'
+                p.status === 'wasdal' && p.kategori !== 'pengawasan'
             );
 
             const pekerjaCheckboxes = pekerja.map(p => `
