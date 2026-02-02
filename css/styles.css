@@ -515,6 +515,11 @@ body {
     color: var(--success);
 }
 
+.progress-badge.pengawasan {
+    background: rgba(168, 85, 247, 0.2);
+    color: #a855f7;
+}
+
 .progress-bar-container {
     background: var(--bg-primary);
     border-radius: var(--radius-full);
@@ -696,6 +701,11 @@ body {
 .category-badge.perpipaan {
     background: rgba(16, 185, 129, 0.15);
     color: var(--success);
+}
+
+.category-badge.pengawasan {
+    background: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
 }
 
 /* ========================================

@@ -344,6 +344,7 @@
                             <option value="">Semua Kategori</option>
                             <option value="sipil">🏗️ Bangunan Sipil</option>
                             <option value="perpipaan">🔧 Perpipaan</option>
+                            <option value="pengawasan">👁️ Pengawasan</option>
                         </select>
                     </div>
                 </div>
@@ -382,6 +383,14 @@
                         <h3>🔧 Perpipaan</h3>
                     </div>
                     <div class="section-body" id="perpipaanList">
+                        <!-- Will be rendered by JS -->
+                    </div>
+                </div>
+                <div class="pekerjaan-section">
+                    <div class="section-header">
+                        <h3>👁️ Pengawasan</h3>
+                    </div>
+                    <div class="section-body" id="pengawasanList">
                         <!-- Will be rendered by JS -->
                     </div>
                 </div>
@@ -480,6 +489,7 @@
                 const completed = pekerjaan.filter(p => p.status === 'selesai').length;
                 const sipil = pekerjaan.filter(p => p.kategori === 'sipil').length;
                 const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').length;
+                const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan').length;
 
                 container.innerHTML = `
                     <div class="stat-card-large">
@@ -515,6 +525,13 @@
                         <div style="text-align: left;">
                             <div class="stat-value">${perpipaan}</div>
                             <div class="stat-label">Pipa</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-large wasdal">
+                        <div class="stat-icon">👁️</div>
+                        <div style="text-align: left;">
+                            <div class="stat-value">${pengawasan}</div>
+                            <div class="stat-label">Wasdal</div>
                         </div>
                     </div>
                 `;
@@ -606,9 +623,11 @@
 
                 const sipil = pekerjaan.filter(p => p.kategori === 'sipil').slice(0, 5);
                 const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').slice(0, 5);
+                const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan').slice(0, 5);
 
                 document.getElementById('sipiList').innerHTML = this.renderMiniList(sipil, pekerja);
                 document.getElementById('perpipaanList').innerHTML = this.renderMiniList(perpipaan, pekerja);
+                document.getElementById('pengawasanList').innerHTML = this.renderMiniList(pengawasan, pekerja);
             },
 
             renderMiniList(items, pekerja) {

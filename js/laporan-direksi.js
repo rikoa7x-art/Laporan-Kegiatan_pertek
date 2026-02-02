@@ -103,7 +103,8 @@ const LaporanDireksi = {
         // Group by category
         const categories = {
             sipil: reportData.filter(p => p.kategori === 'sipil'),
-            perpipaan: reportData.filter(p => p.kategori === 'perpipaan')
+            perpipaan: reportData.filter(p => p.kategori === 'perpipaan'),
+            pengawasan: reportData.filter(p => p.kategori === 'pengawasan')
         };
 
         let html = `
@@ -119,7 +120,7 @@ const LaporanDireksi = {
             html += `
                 <div style="margin-bottom: 2rem;">
                     <h2 style="font-size: 1.125rem; background: #f1f5f9; padding: 0.5rem 1rem; border-left: 4px solid #3b82f6; margin-bottom: 1rem; color: #1e293b;">
-                        ${key === 'sipil' ? '🏗️ BANGUNAN SIPIL' : '🔧 PERPIPAAN'}
+                        ${key === 'sipil' ? '🏗️ BANGUNAN SIPIL' : key === 'perpipaan' ? '🔧 PERPIPAAN' : '👁️ PENGAWASAN'}
                     </h2>
                     <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
                         <thead>

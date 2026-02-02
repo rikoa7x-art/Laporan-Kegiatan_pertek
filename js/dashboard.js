@@ -117,7 +117,8 @@ const Dashboard = {
 
             const icons = {
                 sipil: '🏗️',
-                perpipaan: '🔧'
+                perpipaan: '🔧',
+                pengawasan: '👁️'
             };
 
             return `

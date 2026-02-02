@@ -146,6 +146,7 @@ const Laporan = {
                             <option value="">Pilih Kategori</option>
                             <option value="sipil" ${item?.kategori === 'sipil' ? 'selected' : ''}>🏗️ Bangunan Sipil</option>
                             <option value="perpipaan" ${item?.kategori === 'perpipaan' ? 'selected' : ''}>🔧 Perpipaan</option>
+                            <option value="pengawasan" ${item?.kategori === 'pengawasan' ? 'selected' : ''}>👁️ Pengawasan</option>
                         </select>
                     </div>
                 </div>

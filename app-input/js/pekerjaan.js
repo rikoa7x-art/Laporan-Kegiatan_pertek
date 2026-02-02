@@ -213,6 +213,7 @@ const Pekerjaan = {
                             <option value="">Pilih Kategori</option>
                             <option value="sipil">🏗️ Bangunan Sipil</option>
                             <option value="perpipaan">🔧 Perpipaan</option>
+                            <option value="pengawasan">👁️ Pengawasan</option>
                         </select>
                     </div>
                     <div class="form-group">

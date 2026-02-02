@@ -143,7 +143,8 @@ const Utils = {
     getCategoryDisplay(category) {
         const categories = {
             sipil: '🏗️ Bangunan Sipil',
-            perpipaan: '🔧 Perpipaan'
+            perpipaan: '🔧 Perpipaan',
+            pengawasan: '👁️ Pengawasan'
         };
         return categories[category] || category;
     },
