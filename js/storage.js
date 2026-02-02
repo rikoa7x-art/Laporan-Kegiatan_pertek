@@ -24,7 +24,19 @@ const Storage = {
     get(key) {
         try {
             const data = localStorage.getItem(key);
-            return data ? JSON.parse(data) : [];
+            if (!data) return [];
+
+            const parsed = JSON.parse(data);
+
+            // If it's already an array, return it
+            if (Array.isArray(parsed)) return parsed;
+
+            // If it's an object (possible from Firebase RTDB array handling), convert to array
+            if (parsed && typeof parsed === 'object') {
+                return Object.values(parsed);
+            }
+
+            return [];
         } catch (error) {
             console.error('Error reading from storage:', error);
             return [];

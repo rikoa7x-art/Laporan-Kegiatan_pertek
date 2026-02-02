@@ -635,14 +635,25 @@
             },
 
             renderCategoryLists() {
-                const pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
+                let pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
                 const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+
+                // Sort all items first to show newest ones in category slices
+                pekerjaan.sort((a, b) => {
+                    const dateA = new Date(a.createdAt || 0);
+                    const dateB = new Date(b.createdAt || 0);
+                    return dateB - dateA;
+                });
 
                 const sipil = pekerjaan.filter(p => p.kategori === 'sipil').slice(0, 5);
                 const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').slice(0, 5);
                 const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan');
 
-                console.log('Category Lists counts:', { sipil: sipil.length, perpipaan: perpipaan.length, pengawasan: pengawasan.length });
+                console.log('Category Lists render:', {
+                    totalPekerjaan: pekerjaan.length,
+                    pengawasanCount: pengawasan.length,
+                    pengawasanItems: pengawasan.map(p => p.namaPekerjaan)
+                });
 
                 document.getElementById('sipiList').innerHTML = this.renderMiniList(sipil, pekerja);
                 document.getElementById('perpipaanList').innerHTML = this.renderMiniList(perpipaan, pekerja);
