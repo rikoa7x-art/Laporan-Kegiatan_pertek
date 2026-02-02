@@ -427,9 +427,41 @@ const Pekerjaan = {
         const pekerja = Storage.get(Storage.KEYS.PEKERJA);
         const progress = this.calculateProgress(pekerjaan.status);
 
+        // Store dokumen globally for view/download handlers
+        window._currentDokumen = [];
+
         const timelineHtml = pekerjaan.tahapan.map((tahap, index) => {
             const isActive = index === pekerjaan.tahapan.length - 1 && pekerjaan.status !== 'selesai';
             const pelaksanaNames = this.getPelaksanaNames(tahap.pelaksana, pekerja);
+
+            // Render dokumen list for this stage
+            let stageDokumenHtml = '';
+            if (tahap.dokumen && tahap.dokumen.length > 0) {
+                const dokumenItems = tahap.dokumen.map((doc) => {
+                    const globalIndex = window._currentDokumen.length;
+                    window._currentDokumen.push(doc);
+                    const icon = doc.type && doc.type.includes('pdf') ? '📄' : '🖼️';
+                    const sizeKB = doc.size ? Math.round(doc.size / 1024) : 0;
+                    return `
+                        <div style="display: flex; align-items: center; gap: var(--spacing-xs); padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border-radius: var(--radius-sm); font-size: 0.75rem;">
+                            <span>${icon}</span>
+                            <span style="flex: 1; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${doc.name}">${doc.name}</span>
+                            <span style="color: var(--text-muted); font-size: 0.65rem;">${sizeKB}KB</span>
+                            <button type="button" onclick="Pekerjaan.viewFile(${globalIndex})" style="background: var(--primary); color: white; border: none; padding: 2px 5px; border-radius: 3px; cursor: pointer; font-size: 0.65rem;">Lihat</button>
+                            <button type="button" onclick="Pekerjaan.downloadFile(${globalIndex})" style="background: var(--success); color: white; border: none; padding: 2px 5px; border-radius: 3px; cursor: pointer; font-size: 0.65rem;">↓</button>
+                        </div>
+                    `;
+                }).join('');
+
+                stageDokumenHtml = `
+                    <div style="margin-top: var(--spacing-sm);">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">📎 Lampiran:</p>
+                        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-xs);">
+                            ${dokumenItems}
+                        </div>
+                    </div>
+                `;
+            }
 
             return `
                 <div class="timeline-item ${isActive ? 'active' : ''} ${tahap.tanggalSelesai ? 'completed' : ''}">
@@ -447,6 +479,7 @@ const Pekerjaan = {
                         <div class="timeline-body">
                             <p><strong>Pelaksana:</strong> ${pelaksanaNames || '-'}</p>
                             ${tahap.catatan ? `<p><strong>Catatan:</strong> ${Utils.escapeHtml(tahap.catatan)}</p>` : ''}
+                            ${stageDokumenHtml}
                         </div>
                     </div>
                 </div>
@@ -601,5 +634,35 @@ const Pekerjaan = {
                 this.viewDetail(pekerjaanId);
             }
         }
+    },
+
+    /**
+     * View file in new tab
+     */
+    viewFile(index) {
+        const fileData = window._currentDokumen[index];
+        if (!fileData) return;
+
+        const newWindow = window.open();
+        if (fileData.type && fileData.type.includes('pdf')) {
+            newWindow.document.write(`<iframe src="${fileData.data}" style="width:100%; height:100%; border:none;"></iframe>`);
+        } else {
+            newWindow.document.write(`<img src="${fileData.data}" style="max-width:100%; height:auto;">`);
+        }
+    },
+
+    /**
+     * Download file
+     */
+    downloadFile(index) {
+        const fileData = window._currentDokumen[index];
+        if (!fileData) return;
+
+        const link = document.createElement('a');
+        link.href = fileData.data;
+        link.download = fileData.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 };
