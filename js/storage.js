@@ -346,7 +346,7 @@ const Storage = {
         });
 
         if (needsUpdate) {
-            this.set(this.KEYS.PEKERJA, existingPekerja);
+            this.set(this.KEYS.PEKERJA, existingPekerja, true);
         }
     },
 
@@ -415,7 +415,7 @@ const Storage = {
         });
 
         if (migrated) {
-            this.set(this.KEYS.PEKERJAAN, pekerjaan);
+            this.set(this.KEYS.PEKERJAAN, pekerjaan, true);
             console.log('Migration completed: Updated pelaksana IDs to fixed IDs');
         }
 
@@ -426,7 +426,7 @@ const Storage = {
         );
 
         if (cleanedPekerja.length !== pekerja.length) {
-            this.set(this.KEYS.PEKERJA, cleanedPekerja);
+            this.set(this.KEYS.PEKERJA, cleanedPekerja, true);
             console.log('Cleaned up duplicate pekerja entries');
         }
     }
@@ -435,12 +435,14 @@ const Storage = {
 // Initialize sample data and cloud on load
 document.addEventListener('DOMContentLoaded', async () => {
     Storage.initDefaultConfig(); // Load default Firebase config first
-    Storage.initSampleData();
-    Storage.migratePekerjaIds(); // Migrate old IDs to fixed IDs
+
+    // Initialize cloud and pull first if autoSync is on
     if (Storage.initCloud() && Storage.config.autoSync) {
         // Automatic pull on startup to get latest data from other devices
         await Storage.pull();
-        // Run migration again after pull in case synced data has old IDs
-        Storage.migratePekerjaIds();
     }
+
+    // Run maintenance tasks AFTER pull
+    Storage.initSampleData();
+    Storage.migratePekerjaIds();
 });
