@@ -707,7 +707,56 @@
             }
         };
 
+        // User Data (same as app-input for consistency)
+        const users = [
+            { id: 'dadi', nama: 'Dadi Riswadi', role: 'manager', roleDisplay: '👔 Manager Divisi' },
+            { id: 'riko', nama: 'Riko Komara', role: 'asman_sipil', roleDisplay: '🏗️ Asman Bangunan Sipil' },
+            { id: 'sulaeman', nama: 'M. Sulaeman', role: 'asman_perpipaan', roleDisplay: '🔧 Asman Perpipaan' },
+            { id: 'dian', nama: 'Dian Suhendrik', role: 'staf', roleDisplay: '👷 Staf' },
+            { id: 'yunia', nama: 'Yunia', role: 'staf', roleDisplay: '👷 Staf' },
+            { id: 'andit', nama: 'Andit', role: 'staf', roleDisplay: '👷 Staf' },
+            { id: 'aldy', nama: 'Aldy', role: 'staf', roleDisplay: '👷 Staf' },
+            { id: 'fahry', nama: 'Fahry', role: 'staf', roleDisplay: '👷 Staf' }
+        ];
+
+        // Sync hardcoded users to pekerja storage
+        function syncUsersToPekerja() {
+            let pekerja = Storage.get(Storage.KEYS.PEKERJA);
+
+            // Map existing pekerja by their id for quick lookup
+            const existingIds = new Set(pekerja.map(p => p.id));
+
+            // Add/update users to pekerja
+            users.forEach(user => {
+                if (!existingIds.has(user.id)) {
+                    // Add new user as pekerja without using Storage.add (to preserve ID)
+                    pekerja.push({
+                        id: user.id,
+                        nama: user.nama,
+                        role: user.role,
+                        roleDisplay: user.roleDisplay,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    });
+                } else {
+                    // Update existing pekerja's name/role if different
+                    const idx = pekerja.findIndex(p => p.id === user.id);
+                    if (idx !== -1) {
+                        pekerja[idx].nama = user.nama;
+                        pekerja[idx].role = user.role;
+                        pekerja[idx].roleDisplay = user.roleDisplay;
+                        pekerja[idx].updatedAt = new Date().toISOString();
+                    }
+                }
+            });
+
+            Storage.set(Storage.KEYS.PEKERJA, pekerja);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
+            // Sync users to pekerja storage first
+            syncUsersToPekerja();
+
             DashboardApp.init();
 
             // Register real-time sync callback

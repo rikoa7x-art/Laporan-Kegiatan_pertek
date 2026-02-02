@@ -886,6 +886,10 @@
         window.onload = function () {
             Toast.init();
             Modal.init();
+
+            // Sync users to pekerja storage
+            syncUsersToPekerja();
+
             renderUsers();
             checkSavedUser();
 
@@ -899,6 +903,40 @@
                 }
             };
         };
+
+        // Sync hardcoded users to pekerja storage
+        function syncUsersToPekerja() {
+            let pekerja = Storage.get(Storage.KEYS.PEKERJA);
+
+            // Map existing pekerja by their id for quick lookup
+            const existingIds = new Set(pekerja.map(p => p.id));
+
+            // Add/update users to pekerja
+            users.forEach(user => {
+                if (!existingIds.has(user.id)) {
+                    // Add new user as pekerja without using Storage.add (to preserve ID)
+                    pekerja.push({
+                        id: user.id,
+                        nama: user.nama,
+                        role: user.role,
+                        roleDisplay: user.roleDisplay,
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
+                    });
+                } else {
+                    // Update existing pekerja's name/role if different
+                    const idx = pekerja.findIndex(p => p.id === user.id);
+                    if (idx !== -1) {
+                        pekerja[idx].nama = user.nama;
+                        pekerja[idx].role = user.role;
+                        pekerja[idx].roleDisplay = user.roleDisplay;
+                        pekerja[idx].updatedAt = new Date().toISOString();
+                    }
+                }
+            });
+
+            Storage.set(Storage.KEYS.PEKERJA, pekerja);
+        }
     </script>
 </body>
 
