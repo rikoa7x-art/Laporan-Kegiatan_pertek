@@ -846,12 +846,44 @@
             };
             const progress = progressMap[pekerjaan.status] || 0;
 
+            // Store dokumen globally for access in onclick handlers
+            window._currentDokumen = [];
+
             const timelineHtml = pekerjaan.tahapan.map((tahap, index) => {
                 const isActive = index === pekerjaan.tahapan.length - 1 && pekerjaan.status !== 'selesai';
                 const pelaksanaNames = tahap.pelaksana?.map(pId => {
                     const p = pekerja.find(pk => pk.id === pId);
                     return p ? p.nama : null;
                 }).filter(Boolean).join(', ') || '-';
+
+                // Render dokumen list for this stage
+                let dokumenHtml = '';
+                if (tahap.dokumen && tahap.dokumen.length > 0) {
+                    const dokumenItems = tahap.dokumen.map((doc, docIndex) => {
+                        const globalIndex = window._currentDokumen.length;
+                        window._currentDokumen.push(doc);
+                        const icon = doc.type.includes('pdf') ? '📄' : '🖼️';
+                        const sizeKB = Math.round(doc.size / 1024);
+                        return `
+                            <div style="display: flex; align-items: center; gap: var(--spacing-xs); padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border-radius: var(--radius-sm); font-size: 0.8rem;">
+                                <span>${icon}</span>
+                                <span style="flex: 1; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${doc.name}">${doc.name}</span>
+                                <span style="color: var(--text-muted); font-size: 0.7rem;">${sizeKB}KB</span>
+                                <button type="button" onclick="viewFile(window._currentDokumen[${globalIndex}])" style="background: var(--primary); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">Lihat</button>
+                                <button type="button" onclick="downloadFile(window._currentDokumen[${globalIndex}])" style="background: var(--success); color: white; border: none; padding: 2px 6px; border-radius: 3px; cursor: pointer; font-size: 0.7rem;">↓</button>
+                            </div>
+                        `;
+                    }).join('');
+
+                    dokumenHtml = `
+                        <div style="margin-top: var(--spacing-sm);">
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">📎 Lampiran:</p>
+                            <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-xs);">
+                                ${dokumenItems}
+                            </div>
+                        </div>
+                    `;
+                }
 
                 return `
                     <div style="display: flex; gap: var(--spacing-md); padding: var(--spacing-md); background: ${isActive ? 'var(--primary-ghost)' : 'var(--bg-tertiary)'}; border-radius: var(--radius-md); margin-bottom: var(--spacing-sm); border-left: 3px solid ${isActive ? 'var(--primary)' : 'var(--success)'};">
@@ -865,6 +897,7 @@
                             </div>
                             <p style="font-size: 0.875rem;"><strong>Pelaksana:</strong> ${pelaksanaNames}</p>
                             ${tahap.catatan ? `<p style="font-size: 0.875rem; color: var(--text-secondary);">${Utils.escapeHtml(tahap.catatan)}</p>` : ''}
+                            ${dokumenHtml}
                         </div>
                     </div>
                 `;
@@ -935,6 +968,15 @@
                         <label class="form-label">Catatan Penyelesaian Tahap ${Utils.getStatusDisplay(pekerjaan.status)}</label>
                         <textarea name="catatanSelesai" class="form-textarea" rows="2" placeholder="Catatan penyelesaian..."></textarea>
                     </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">📎 Lampiran Dokumen (PDF/Gambar)</label>
+                        <input type="file" id="fileUpload" class="form-input" accept=".pdf,.jpg,.jpeg,.png" multiple style="padding: var(--spacing-sm);">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--spacing-xs);">
+                            Upload hasil ${Utils.getStatusDisplay(pekerjaan.status)} (maks. 5 file, masing-masing maks. 5MB)
+                        </p>
+                        <div id="filePreview" style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm); margin-top: var(--spacing-sm);"></div>
+                    </div>
 
                     <div class="form-group">
                         <label class="form-label">Tanggal Mulai ${Utils.getStatusDisplay(nextStatus)}</label>
@@ -956,10 +998,59 @@
                 </form>
             `;
 
+            // Store uploaded files
+            let uploadedFiles = [];
+
             Modal.open({
                 title: `➡️ Lanjutkan ke ${Utils.getStatusDisplay(nextStatus)}`,
                 content,
                 size: 'large',
+                onOpen: () => {
+                    const fileInput = document.getElementById('fileUpload');
+                    const preview = document.getElementById('filePreview');
+
+                    fileInput.addEventListener('change', async (e) => {
+                        const files = Array.from(e.target.files);
+
+                        // Validate file count
+                        if (files.length + uploadedFiles.length > 5) {
+                            Toast.show('Maksimal 5 file', 'error');
+                            fileInput.value = '';
+                            return;
+                        }
+
+                        for (const file of files) {
+                            // Validate file size (5MB)
+                            if (file.size > 5 * 1024 * 1024) {
+                                Toast.show(`File ${file.name} terlalu besar (maks. 5MB)`, 'error');
+                                continue;
+                            }
+
+                            // Convert to base64
+                            const base64 = await fileToBase64(file);
+                            const fileData = {
+                                name: file.name,
+                                type: file.type,
+                                size: file.size,
+                                data: base64,
+                                uploadedAt: new Date().toISOString()
+                            };
+                            uploadedFiles.push(fileData);
+
+                            // Add preview
+                            const previewItem = document.createElement('div');
+                            previewItem.style.cssText = 'display: flex; align-items: center; gap: var(--spacing-xs); padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-tertiary); border-radius: var(--radius-sm); font-size: 0.8rem;';
+                            previewItem.innerHTML = `
+                                <span>${file.type.includes('pdf') ? '📄' : '🖼️'}</span>
+                                <span style="max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${file.name}</span>
+                                <button type="button" onclick="this.parentElement.remove(); uploadedFiles = uploadedFiles.filter(f => f.name !== '${file.name}')" style="background: none; border: none; cursor: pointer; color: var(--danger);">✕</button>
+                            `;
+                            preview.appendChild(previewItem);
+                        }
+
+                        fileInput.value = '';
+                    });
+                },
                 onSave: (data) => {
                     if (!data.pelaksanaId) {
                         Toast.show('Pilih pelaksana', 'error');
@@ -972,6 +1063,12 @@
                     if (data.catatanSelesai) {
                         currentTahap.catatan = (currentTahap.catatan ? currentTahap.catatan + '\n\n' : '') +
                             'Catatan penyelesaian: ' + data.catatanSelesai;
+                    }
+
+                    // Add uploaded files to current stage
+                    if (uploadedFiles.length > 0) {
+                        currentTahap.dokumen = currentTahap.dokumen || [];
+                        currentTahap.dokumen.push(...uploadedFiles);
                     }
 
                     // Add new stage
@@ -993,6 +1090,36 @@
                     return true;
                 }
             });
+        }
+
+        // Helper function to convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Helper function to download base64 file
+        function downloadFile(fileData) {
+            const link = document.createElement('a');
+            link.href = fileData.data;
+            link.download = fileData.name;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Helper function to view file (open in new tab for images/pdf)
+        function viewFile(fileData) {
+            const newWindow = window.open();
+            if (fileData.type.includes('pdf')) {
+                newWindow.document.write(`<iframe src="${fileData.data}" style="width:100%; height:100%; border:none;"></iframe>`);
+            } else {
+                newWindow.document.write(`<img src="${fileData.data}" style="max-width:100%; height:auto;">`);
+            }
         }
 
         // Check saved user
