@@ -491,6 +491,8 @@
                 const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').length;
                 const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan').length;
 
+                console.log('Summary Stats:', { total, inProgress, completed, sipil, perpipaan, pengawasan });
+
                 container.innerHTML = `
                     <div class="stat-card-large">
                         <div class="stat-icon">📁</div>
@@ -541,6 +543,8 @@
                 const tbody = document.getElementById('pekerjaanTableBody');
                 let pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
                 const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+
+                console.log('Rendering Table. Total items:', pekerjaan.length);
 
                 // Apply filters
                 const filterStatus = document.getElementById('filterStatus').value;
@@ -623,7 +627,9 @@
 
                 const sipil = pekerjaan.filter(p => p.kategori === 'sipil').slice(0, 5);
                 const perpipaan = pekerjaan.filter(p => p.kategori === 'perpipaan').slice(0, 5);
-                const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan').slice(0, 5);
+                const pengawasan = pekerjaan.filter(p => p.kategori === 'pengawasan');
+
+                console.log('Category Lists counts:', { sipil: sipil.length, perpipaan: perpipaan.length, pengawasan: pengawasan.length });
 
                 document.getElementById('sipiList').innerHTML = this.renderMiniList(sipil, pekerja);
                 document.getElementById('perpipaanList').innerHTML = this.renderMiniList(perpipaan, pekerja);

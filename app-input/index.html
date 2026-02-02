@@ -802,25 +802,24 @@
                     }
 
                     if (isPengawasan) {
+                        console.log('Mode: Pengawasan');
                         // Mode pengawasan - pilih pekerjaan yang sudah ada
                         const pekerjaanId = document.getElementById('selectPekerjaan').value;
+                        const progressValue = document.getElementById('selectProgress').value;
+                        const selectedPengawas = Array.from(document.getElementById('selectPengawas').selectedOptions).map(o => o.value);
+
+                        console.log('Data:', { pekerjaanId, progressValue, selectedPengawas });
+
                         if (!pekerjaanId) {
                             Toast.show('Pilih pekerjaan yang akan diawasi', 'error');
                             return false;
                         }
 
                         // Get progress
-                        const progressValue = document.getElementById('selectProgress').value;
                         if (!progressValue) {
                             Toast.show('Pilih progress pekerjaan', 'error');
                             return false;
                         }
-
-                        // Get selected pengawas
-                        const selectedPengawas = [];
-                        document.querySelectorAll('input[name="surveyors"]:checked').forEach(cb => {
-                            selectedPengawas.push(cb.value);
-                        });
 
                         if (selectedPengawas.length < 1) {
                             Toast.show('Pilih minimal 1 pengawas', 'error');
@@ -866,8 +865,10 @@
                             }]
                         };
 
+                        console.log('Saving Pengawasan:', pengawasan);
                         Storage.add(Storage.KEYS.PEKERJAAN, pengawasan);
                         Toast.show(`Pengawasan ${progressLabel} berhasil ditambahkan!`, 'success');
+                        Modal.hide();
 
                     } else {
                         // Mode normal - buat pekerjaan baru
