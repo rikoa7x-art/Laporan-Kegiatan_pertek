@@ -301,30 +301,127 @@ const Storage = {
 
     /**
      * Initialize sample data if empty
+     * Uses fixed IDs to ensure consistency across all devices during Firebase sync
      */
     initSampleData() {
-        // Only init if no data exists
-        if (this.get(this.KEYS.PEKERJA).length === 0) {
-            // Add workers based on organizational structure
-            const samplePekerja = [
-                // Manajemen
-                { nama: 'Dadi Riswadi', role: 'manager', departemen: 'Divisi' },
-                { nama: 'Riko Komara', role: 'asman_sipil', departemen: 'Bangunan Sipil' },
-                { nama: 'M. Sulaeman', role: 'asman_perpipaan', departemen: 'Perpipaan' },
+        // Add workers based on organizational structure with FIXED IDs
+        // This ensures all devices have the same worker IDs
+        const samplePekerja = [
+            // Manajemen
+            { id: 'pekerja_dadi', nama: 'Dadi Riswadi', role: 'manager', departemen: 'Divisi' },
+            { id: 'pekerja_riko', nama: 'Riko Komara', role: 'asman_sipil', departemen: 'Bangunan Sipil' },
+            { id: 'pekerja_sulaeman', nama: 'M. Sulaeman', role: 'asman_perpipaan', departemen: 'Perpipaan' },
 
-                // Staff Teknis
-                { nama: 'Yunia', role: 'staf', departemen: 'Teknik' },
-                { nama: 'Andit', role: 'staf', departemen: 'Perencanaan' },
-                { nama: 'Fahry', role: 'staf', departemen: 'Desain' },
-                { nama: 'Aldy', role: 'staf', departemen: 'Teknik' },
+            // Staff Teknis
+            { id: 'pekerja_yunia', nama: 'Yunia', role: 'staf', departemen: 'Teknik' },
+            { id: 'pekerja_andit', nama: 'Andit', role: 'staf', departemen: 'Perencanaan' },
+            { id: 'pekerja_fahry', nama: 'Fahry', role: 'staf', departemen: 'Desain' },
+            { id: 'pekerja_aldy', nama: 'Aldy', role: 'staf', departemen: 'Teknik' },
 
-                // Pengawas dan Pengendalian
-                { nama: 'Dian Suhendrik', role: 'wasdal', departemen: 'Pengawasan' }
-            ];
+            // Pengawas dan Pengendalian
+            { id: 'pekerja_dian', nama: 'Dian Suhendrik', role: 'wasdal', departemen: 'Pengawasan' }
+        ];
 
-            samplePekerja.forEach(pekerja => {
-                this.add(this.KEYS.PEKERJA, pekerja);
+        const existingPekerja = this.get(this.KEYS.PEKERJA);
+        const existingIds = existingPekerja.map(p => p.id);
+
+        let needsUpdate = false;
+
+        samplePekerja.forEach(pekerja => {
+            // Only add if this fixed ID doesn't exist yet
+            if (!existingIds.includes(pekerja.id)) {
+                existingPekerja.push({
+                    ...pekerja,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                needsUpdate = true;
+            }
+        });
+
+        if (needsUpdate) {
+            this.set(this.KEYS.PEKERJA, existingPekerja);
+        }
+    },
+
+    /**
+     * Migrate old random worker IDs to fixed IDs in all pekerjaan data
+     * This fixes existing data where pelaksana IDs don't match current pekerja IDs
+     */
+    migratePekerjaIds() {
+        const pekerja = this.get(this.KEYS.PEKERJA);
+        const pekerjaan = this.get(this.KEYS.PEKERJAAN);
+
+        if (pekerjaan.length === 0) return;
+
+        // Create mapping from old random IDs to fixed IDs based on nama
+        const namaToFixedId = {
+            'Dadi Riswadi': 'pekerja_dadi',
+            'Riko Komara': 'pekerja_riko',
+            'M. Sulaeman': 'pekerja_sulaeman',
+            'Yunia': 'pekerja_yunia',
+            'Andit': 'pekerja_andit',
+            'Fahry': 'pekerja_fahry',
+            'Aldy': 'pekerja_aldy',
+            'Dian Suhendrik': 'pekerja_dian'
+        };
+
+        // Build mapping from any old ID to fixed ID
+        const oldIdToFixedId = {};
+        pekerja.forEach(p => {
+            const fixedId = namaToFixedId[p.nama];
+            if (fixedId && p.id !== fixedId) {
+                oldIdToFixedId[p.id] = fixedId;
+            }
+        });
+
+        // Also map by looking at existing pekerjaan pelaksana
+        // that might have old IDs not in current pekerja list
+        let migrated = false;
+
+        pekerjaan.forEach(item => {
+            if (!item.tahapan) return;
+
+            item.tahapan.forEach(tahap => {
+                if (!tahap.pelaksana || !Array.isArray(tahap.pelaksana)) return;
+
+                tahap.pelaksana = tahap.pelaksana.map(id => {
+                    // If already a fixed ID, keep it
+                    if (id.startsWith('pekerja_')) return id;
+
+                    // Try mapping from known old IDs
+                    if (oldIdToFixedId[id]) {
+                        migrated = true;
+                        return oldIdToFixedId[id];
+                    }
+
+                    // Try to find pekerja with this ID and get their name
+                    const worker = pekerja.find(p => p.id === id);
+                    if (worker && namaToFixedId[worker.nama]) {
+                        migrated = true;
+                        return namaToFixedId[worker.nama];
+                    }
+
+                    // Keep original ID if no mapping found
+                    return id;
+                });
             });
+        });
+
+        if (migrated) {
+            this.set(this.KEYS.PEKERJAAN, pekerjaan);
+            console.log('Migration completed: Updated pelaksana IDs to fixed IDs');
+        }
+
+        // Also clean up duplicate pekerja with old random IDs
+        const fixedIds = Object.values(namaToFixedId);
+        const cleanedPekerja = pekerja.filter(p =>
+            fixedIds.includes(p.id) || !Object.keys(namaToFixedId).includes(p.nama)
+        );
+
+        if (cleanedPekerja.length !== pekerja.length) {
+            this.set(this.KEYS.PEKERJA, cleanedPekerja);
+            console.log('Cleaned up duplicate pekerja entries');
         }
     }
 };
@@ -333,8 +430,11 @@ const Storage = {
 document.addEventListener('DOMContentLoaded', async () => {
     Storage.initDefaultConfig(); // Load default Firebase config first
     Storage.initSampleData();
+    Storage.migratePekerjaIds(); // Migrate old IDs to fixed IDs
     if (Storage.initCloud() && Storage.config.autoSync) {
         // Automatic pull on startup to get latest data from other devices
         await Storage.pull();
+        // Run migration again after pull in case synced data has old IDs
+        Storage.migratePekerjaIds();
     }
 });
