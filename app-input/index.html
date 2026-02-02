@@ -578,6 +578,12 @@
         // Show input form for new pekerjaan
         function showInputForm() {
             const pekerja = Storage.get(Storage.KEYS.PEKERJA);
+            const existingPekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
+
+            // Filter pekerjaan yang belum selesai untuk pengawasan
+            const pekerjaanForWasdal = existingPekerjaan.filter(p =>
+                p.status !== 'selesai' && p.kategori !== 'pengawasan'
+            );
 
             const pekerjaCheckboxes = pekerja.map(p => `
                 <label style="display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-xs) 0; cursor: pointer;">
@@ -586,19 +592,18 @@
                 </label>
             `).join('');
 
+            const pekerjaanOptions = pekerjaanForWasdal.map(p => `
+                <option value="${p.id}">${Utils.escapeHtml(p.namaPekerjaan)} - ${p.lokasi || 'Tanpa Lokasi'} (${Utils.getStatusDisplay(p.status)})</option>
+            `).join('');
+
             const today = Utils.formatDateInput(new Date());
 
             const content = `
                 <form id="formPekerjaan">
-                    <div class="form-group">
-                        <label class="form-label">Nama Pekerjaan</label>
-                        <input type="text" name="namaPekerjaan" class="form-input" required placeholder="Contoh: Pembangunan Gedung Kantor">
-                    </div>
-
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                         <div class="form-group">
                             <label class="form-label">Kategori</label>
-                            <select name="kategori" class="form-select" required>
+                            <select name="kategori" id="selectKategori" class="form-select" required>
                                 <option value="">Pilih Kategori</option>
                                 <option value="sipil">🏗️ Bangunan Sipil</option>
                                 <option value="perpipaan">🔧 Perpipaan</option>
@@ -606,53 +611,75 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Tanggal Survey</label>
+                            <label class="form-label" id="labelTanggal">Tanggal Survey</label>
                             <input type="date" name="tanggalSurvey" class="form-input" value="${today}" required>
                         </div>
                     </div>
+                    
+                    <!-- Section untuk pekerjaan baru (sipil/perpipaan) -->
+                    <div id="sectionNewPekerjaan">
+                        <div class="form-group">
+                            <label class="form-label">Nama Pekerjaan</label>
+                            <input type="text" name="namaPekerjaan" class="form-input" placeholder="Contoh: Pembangunan Gedung Kantor">
+                        </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Lokasi (Kecamatan)</label>
-                        <select name="lokasi" class="form-select" required>
-                            <option value="">Pilih Kecamatan</option>
-                            <option value="Binong">Binong</option>
-                            <option value="Blanakan">Blanakan</option>
-                            <option value="Ciasem">Ciasem</option>
-                            <option value="Ciater">Ciater</option>
-                            <option value="Cibogo">Cibogo</option>
-                            <option value="Cijambe">Cijambe</option>
-                            <option value="Cipeundeuy">Cipeundeuy</option>
-                            <option value="Cipunagara">Cipunagara</option>
-                            <option value="Cisalak">Cisalak</option>
-                            <option value="Compreng">Compreng</option>
-                            <option value="Dawuan">Dawuan</option>
-                            <option value="Jalancagak">Jalancagak</option>
-                            <option value="Kalijati">Kalijati</option>
-                            <option value="Kasomalang">Kasomalang</option>
-                            <option value="Legonkulon">Legonkulon</option>
-                            <option value="Pabuaran">Pabuaran</option>
-                            <option value="Pagaden">Pagaden</option>
-                            <option value="Pamanukan">Pamanukan</option>
-                            <option value="Patokbeusi">Patokbeusi</option>
-                            <option value="Purwadadi">Purwadadi</option>
-                            <option value="Pusakajaya">Pusakajaya</option>
-                            <option value="Pusakanagara">Pusakanagara</option>
-                            <option value="Sagalaherang">Sagalaherang</option>
-                            <option value="Subang">Subang</option>
-                            <option value="Tambakdahan">Tambakdahan</option>
-                            <option value="Tanjungsiang">Tanjungsiang</option>
-                        </select>
+                        <div class="form-group">
+                            <label class="form-label">Lokasi (Kecamatan)</label>
+                            <select name="lokasi" class="form-select">
+                                <option value="">Pilih Kecamatan</option>
+                                <option value="Binong">Binong</option>
+                                <option value="Blanakan">Blanakan</option>
+                                <option value="Ciasem">Ciasem</option>
+                                <option value="Ciater">Ciater</option>
+                                <option value="Cibogo">Cibogo</option>
+                                <option value="Cijambe">Cijambe</option>
+                                <option value="Cipeundeuy">Cipeundeuy</option>
+                                <option value="Cipunagara">Cipunagara</option>
+                                <option value="Cisalak">Cisalak</option>
+                                <option value="Compreng">Compreng</option>
+                                <option value="Dawuan">Dawuan</option>
+                                <option value="Jalancagak">Jalancagak</option>
+                                <option value="Kalijati">Kalijati</option>
+                                <option value="Kasomalang">Kasomalang</option>
+                                <option value="Legonkulon">Legonkulon</option>
+                                <option value="Pabuaran">Pabuaran</option>
+                                <option value="Pagaden">Pagaden</option>
+                                <option value="Pamanukan">Pamanukan</option>
+                                <option value="Patokbeusi">Patokbeusi</option>
+                                <option value="Purwadadi">Purwadadi</option>
+                                <option value="Pusakajaya">Pusakajaya</option>
+                                <option value="Pusakanagara">Pusakanagara</option>
+                                <option value="Sagalaherang">Sagalaherang</option>
+                                <option value="Subang">Subang</option>
+                                <option value="Tambakdahan">Tambakdahan</option>
+                                <option value="Tanjungsiang">Tanjungsiang</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Section untuk pengawasan (pilih pekerjaan yang sudah ada) -->
+                    <div id="sectionPengawasan" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Pilih Pekerjaan yang Diawasi</label>
+                            <select name="pekerjaanId" id="selectPekerjaan" class="form-select">
+                                <option value="">-- Pilih Pekerjaan --</option>
+                                ${pekerjaanOptions || '<option value="" disabled>Tidak ada pekerjaan yang tersedia</option>'}
+                            </select>
+                            <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--spacing-xs);">
+                                Pengawasan hanya dapat dilakukan pada pekerjaan yang sudah ada dan belum selesai.
+                            </p>
+                        </div>
                     </div>
 
                     <div style="background: var(--bg-tertiary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
-                        <h4 style="margin-bottom: var(--spacing-md); font-size: 0.875rem; color: var(--text-secondary);">🔍 Tim Survey (pilih 2-3 orang)</h4>
+                        <h4 style="margin-bottom: var(--spacing-md); font-size: 0.875rem; color: var(--text-secondary);" id="labelTim">🔍 Tim Survey (pilih 2-3 orang)</h4>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-xs);">
                             ${pekerjaCheckboxes || '<p style="color: var(--text-muted);">Belum ada pekerja.</p>'}
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">Catatan Survey</label>
+                        <label class="form-label" id="labelCatatan">Catatan Survey</label>
                         <textarea name="catatan" class="form-textarea" rows="3" placeholder="Hasil pengamatan, kondisi lapangan, dll..."></textarea>
                     </div>
                 </form>
@@ -662,51 +689,145 @@
                 title: '📍 Input Pekerjaan Baru (Survey)',
                 content,
                 size: 'large',
+                onOpen: () => {
+                    const selectKategori = document.getElementById('selectKategori');
+                    const sectionNew = document.getElementById('sectionNewPekerjaan');
+                    const sectionPengawasan = document.getElementById('sectionPengawasan');
+                    const labelTanggal = document.getElementById('labelTanggal');
+                    const labelTim = document.getElementById('labelTim');
+                    const labelCatatan = document.getElementById('labelCatatan');
+                    const inputNama = document.querySelector('input[name="namaPekerjaan"]');
+                    const selectLokasi = document.querySelector('select[name="lokasi"]');
+
+                    selectKategori.addEventListener('change', () => {
+                        const isPengawasan = selectKategori.value === 'pengawasan';
+
+                        sectionNew.style.display = isPengawasan ? 'none' : 'block';
+                        sectionPengawasan.style.display = isPengawasan ? 'block' : 'none';
+
+                        // Update labels
+                        labelTanggal.textContent = isPengawasan ? 'Tanggal Pengawasan' : 'Tanggal Survey';
+                        labelTim.innerHTML = isPengawasan ? '👁️ Tim Pengawasan (pilih 1-2 orang)' : '🔍 Tim Survey (pilih 2-3 orang)';
+                        labelCatatan.textContent = isPengawasan ? 'Catatan Pengawasan' : 'Catatan Survey';
+
+                        // Update modal title
+                        const modalTitle = document.querySelector('.modal-title');
+                        if (modalTitle) {
+                            modalTitle.textContent = isPengawasan ? '👁️ Input Pengawasan' : '📍 Input Pekerjaan Baru (Survey)';
+                        }
+
+                        // Toggle required attributes
+                        if (isPengawasan) {
+                            inputNama.removeAttribute('required');
+                            selectLokasi.removeAttribute('required');
+                        } else {
+                            inputNama.setAttribute('required', 'required');
+                            selectLokasi.setAttribute('required', 'required');
+                        }
+                    });
+                },
                 onSave: (data) => {
-                    if (!data.namaPekerjaan || !data.namaPekerjaan.trim()) {
-                        Toast.show('Nama pekerjaan harus diisi', 'error');
-                        return false;
-                    }
+                    const isPengawasan = data.kategori === 'pengawasan';
 
                     if (!data.kategori) {
                         Toast.show('Kategori harus dipilih', 'error');
                         return false;
                     }
 
-                    // Get selected surveyors
-                    const selectedSurveyors = [];
-                    document.querySelectorAll('input[name="surveyors"]:checked').forEach(cb => {
-                        selectedSurveyors.push(cb.value);
-                    });
+                    if (isPengawasan) {
+                        // Mode pengawasan - pilih pekerjaan yang sudah ada
+                        const pekerjaanId = document.getElementById('selectPekerjaan').value;
+                        if (!pekerjaanId) {
+                            Toast.show('Pilih pekerjaan yang akan diawasi', 'error');
+                            return false;
+                        }
 
-                    if (selectedSurveyors.length < 2) {
-                        Toast.show('Pilih minimal 2 surveyor', 'error');
-                        return false;
-                    }
+                        // Get selected pengawas
+                        const selectedPengawas = [];
+                        document.querySelectorAll('input[name="surveyors"]:checked').forEach(cb => {
+                            selectedPengawas.push(cb.value);
+                        });
 
-                    if (selectedSurveyors.length > 3) {
-                        Toast.show('Maksimal 3 surveyor', 'error');
-                        return false;
-                    }
+                        if (selectedPengawas.length < 1) {
+                            Toast.show('Pilih minimal 1 pengawas', 'error');
+                            return false;
+                        }
 
-                    // Create pekerjaan
-                    const pekerjaan = {
-                        namaPekerjaan: data.namaPekerjaan.trim(),
-                        kategori: data.kategori,
-                        lokasi: (data.lokasi || '').trim(),
-                        status: 'survey',
-                        tahapan: [{
+                        if (selectedPengawas.length > 2) {
+                            Toast.show('Maksimal 2 pengawas', 'error');
+                            return false;
+                        }
+
+                        // Get the selected pekerjaan
+                        const targetPekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, pekerjaanId);
+                        if (!targetPekerjaan) {
+                            Toast.show('Pekerjaan tidak ditemukan', 'error');
+                            return false;
+                        }
+
+                        // Create pengawasan record linked to existing pekerjaan
+                        const pengawasan = {
+                            namaPekerjaan: `Pengawasan: ${targetPekerjaan.namaPekerjaan}`,
+                            kategori: 'pengawasan',
+                            lokasi: targetPekerjaan.lokasi,
+                            pekerjaanRef: pekerjaanId, // Reference to the supervised pekerjaan
+                            status: 'wasdal',
+                            tahapan: [{
+                                status: 'wasdal',
+                                pelaksana: selectedPengawas,
+                                tanggalMulai: data.tanggalSurvey,
+                                tanggalSelesai: null,
+                                catatan: (data.catatan || '').trim(),
+                                dokumen: []
+                            }]
+                        };
+
+                        Storage.add(Storage.KEYS.PEKERJAAN, pengawasan);
+                        Toast.show('Pengawasan berhasil ditambahkan!', 'success');
+
+                    } else {
+                        // Mode normal - buat pekerjaan baru
+                        if (!data.namaPekerjaan || !data.namaPekerjaan.trim()) {
+                            Toast.show('Nama pekerjaan harus diisi', 'error');
+                            return false;
+                        }
+
+                        // Get selected surveyors
+                        const selectedSurveyors = [];
+                        document.querySelectorAll('input[name="surveyors"]:checked').forEach(cb => {
+                            selectedSurveyors.push(cb.value);
+                        });
+
+                        if (selectedSurveyors.length < 2) {
+                            Toast.show('Pilih minimal 2 surveyor', 'error');
+                            return false;
+                        }
+
+                        if (selectedSurveyors.length > 3) {
+                            Toast.show('Maksimal 3 surveyor', 'error');
+                            return false;
+                        }
+
+                        // Create pekerjaan
+                        const pekerjaan = {
+                            namaPekerjaan: data.namaPekerjaan.trim(),
+                            kategori: data.kategori,
+                            lokasi: (data.lokasi || '').trim(),
                             status: 'survey',
-                            pelaksana: selectedSurveyors,
-                            tanggalMulai: data.tanggalSurvey,
-                            tanggalSelesai: null,
-                            catatan: (data.catatan || '').trim(),
-                            dokumen: []
-                        }]
-                    };
+                            tahapan: [{
+                                status: 'survey',
+                                pelaksana: selectedSurveyors,
+                                tanggalMulai: data.tanggalSurvey,
+                                tanggalSelesai: null,
+                                catatan: (data.catatan || '').trim(),
+                                dokumen: []
+                            }]
+                        };
 
-                    Storage.add(Storage.KEYS.PEKERJAAN, pekerjaan);
-                    Toast.show('Pekerjaan berhasil dibuat!', 'success');
+                        Storage.add(Storage.KEYS.PEKERJAAN, pekerjaan);
+                        Toast.show('Pekerjaan berhasil dibuat!', 'success');
+                    }
+
                     renderPekerjaanList();
                     return true;
                 }
