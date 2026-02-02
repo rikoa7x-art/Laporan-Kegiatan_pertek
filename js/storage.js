@@ -211,6 +211,8 @@ const Storage = {
                                 // Use skipSync=true to avoid recursive push()
                                 this.set(key, data[key], true);
                             });
+                            // Fix for missing names: migrate incoming data IDs immediately
+                            this.migratePekerjaIds();
                             // Notify UI to refresh
                             if (this.onSyncCallback) {
                                 this.onSyncCallback();
@@ -265,6 +267,9 @@ const Storage = {
                 updatedCount++;
             });
 
+            // Fix for missing names: migrate incoming data IDs immediately
+            this.migratePekerjaIds();
+
             if (this.onSyncCallback) {
                 this.onSyncCallback();
             }
@@ -314,18 +319,18 @@ const Storage = {
         // This ensures all devices have the same worker IDs
         const samplePekerja = [
             // Manajemen
-            { id: 'pekerja_dadi', nama: 'Dadi Riswadi', role: 'manager', departemen: 'Divisi' },
-            { id: 'pekerja_riko', nama: 'Riko Komara', role: 'asman_sipil', departemen: 'Bangunan Sipil' },
-            { id: 'pekerja_sulaeman', nama: 'M. Sulaeman', role: 'asman_perpipaan', departemen: 'Perpipaan' },
+            { id: 'dadi', nama: 'Dadi Riswadi', role: 'manager', departemen: 'Divisi' },
+            { id: 'riko', nama: 'Riko Komara', role: 'asman_sipil', departemen: 'Bangunan Sipil' },
+            { id: 'sulaeman', nama: 'M. Sulaeman', role: 'asman_perpipaan', departemen: 'Perpipaan' },
 
             // Staff Teknis
-            { id: 'pekerja_yunia', nama: 'Yunia', role: 'staf', departemen: 'Teknik' },
-            { id: 'pekerja_andit', nama: 'Andit', role: 'staf', departemen: 'Perencanaan' },
-            { id: 'pekerja_fahry', nama: 'Fahry', role: 'staf', departemen: 'Desain' },
-            { id: 'pekerja_aldy', nama: 'Aldy', role: 'staf', departemen: 'Teknik' },
+            { id: 'yunia', nama: 'Yunia', role: 'staf', departemen: 'Teknik' },
+            { id: 'andit', nama: 'Andit', role: 'staf', departemen: 'Perencanaan' },
+            { id: 'fahry', nama: 'Fahry', role: 'staf', departemen: 'Desain' },
+            { id: 'aldy', nama: 'Aldy', role: 'staf', departemen: 'Teknik' },
 
             // Pengawas dan Pengendalian
-            { id: 'pekerja_dian', nama: 'Dian Suhendrik', role: 'wasdal', departemen: 'Pengawasan' }
+            { id: 'dian', nama: 'Dian Suhendrik', role: 'staf', departemen: 'Pengawasan' }
         ];
 
         const existingPekerja = this.get(this.KEYS.PEKERJA);
@@ -362,14 +367,14 @@ const Storage = {
 
         // Create mapping from old random IDs to fixed IDs based on nama
         const namaToFixedId = {
-            'Dadi Riswadi': 'pekerja_dadi',
-            'Riko Komara': 'pekerja_riko',
-            'M. Sulaeman': 'pekerja_sulaeman',
-            'Yunia': 'pekerja_yunia',
-            'Andit': 'pekerja_andit',
-            'Fahry': 'pekerja_fahry',
-            'Aldy': 'pekerja_aldy',
-            'Dian Suhendrik': 'pekerja_dian'
+            'Dadi Riswadi': 'dadi',
+            'Riko Komara': 'riko',
+            'M. Sulaeman': 'sulaeman',
+            'Yunia': 'yunia',
+            'Andit': 'andit',
+            'Fahry': 'fahry',
+            'Aldy': 'aldy',
+            'Dian Suhendrik': 'dian'
         };
 
         // Build mapping from any old ID to fixed ID
@@ -392,8 +397,8 @@ const Storage = {
                 if (!tahap.pelaksana || !Array.isArray(tahap.pelaksana)) return;
 
                 tahap.pelaksana = tahap.pelaksana.map(id => {
-                    // If already a fixed ID, keep it
-                    if (id.startsWith('pekerja_')) return id;
+                    // Normalize ID: if it's already a correct short ID from our map, keep it
+                    if (Object.values(namaToFixedId).includes(id)) return id;
 
                     // Try mapping from known old IDs
                     if (oldIdToFixedId[id]) {

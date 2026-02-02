@@ -130,7 +130,8 @@ const Utils = {
             estimator: '📊 Estimator',
             drafter: '✏️ Drafter',
             wasdal: '👁️ Wasdal',
-            supervisor: '👔 Supervisor'
+            supervisor: '👔 Supervisor',
+            staf: '👷 Staf'
         };
         return roles[role] || role;
     },

@@ -765,7 +765,8 @@
                 cleanPekerja.some((p, i) => p.id !== existingPekerja[i]?.id || p.nama !== existingPekerja[i]?.nama);
 
             if (workersChanged) {
-                Storage.set(Storage.KEYS.PEKERJA, cleanPekerja, true);
+                console.log('Worker list changed or needs migration, updating and syncing to cloud...');
+                Storage.set(Storage.KEYS.PEKERJA, cleanPekerja);
             }
 
             // Migrate pekerjaan pelaksana IDs if needed
@@ -790,8 +791,8 @@
                 });
 
                 if (needsUpdate) {
-                    Storage.set(Storage.KEYS.PEKERJAAN, pekerjaan, true);
-                    console.log('Migrated pelaksana IDs to new format');
+                    Storage.set(Storage.KEYS.PEKERJAAN, pekerjaan);
+                    console.log('Migrated pelaksana IDs to new format and synced to cloud');
                 }
             }
         }
