@@ -1217,7 +1217,10 @@
         }
 
         // Initialize
-        window.onload = function () {
+        window.onload = async function () {
+            // Wait for Storage to finish initial pull and maintenance
+            await Storage.isInitialized;
+
             Toast.init();
             Modal.init();
 

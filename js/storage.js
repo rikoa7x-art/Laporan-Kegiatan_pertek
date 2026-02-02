@@ -184,6 +184,8 @@ const Storage = {
     db: null,
     onSyncCallback: null,
     managedListener: false,
+    _resolveInit: null,
+    isInitialized: null, // Initialized below
 
     /**
      * Initialize Firebase client
@@ -437,6 +439,10 @@ const Storage = {
     }
 };
 
+Storage.isInitialized = new Promise(resolve => {
+    Storage._resolveInit = resolve;
+});
+
 // Initialize sample data and cloud on load
 document.addEventListener('DOMContentLoaded', async () => {
     Storage.initDefaultConfig(); // Load default Firebase config first
@@ -450,4 +456,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Run maintenance tasks AFTER pull
     Storage.initSampleData();
     Storage.migratePekerjaIds();
+
+    // Signal that storage is ready
+    if (Storage._resolveInit) {
+        Storage._resolveInit();
+        console.log('Storage initialized and synced');
+    }
 });

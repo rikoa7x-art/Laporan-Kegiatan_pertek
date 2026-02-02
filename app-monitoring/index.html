@@ -293,7 +293,11 @@
 <body>
     <div class="dashboard-app-container">
         <header class="dashboard-app-header">
-            <h1>📊 Dashboard Monitoring Pekerjaan</h1>
+            <h1 style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                📊 Dashboard Monitoring
+                <button onclick="DashboardApp.refreshData()" class="btn btn-secondary btn-sm"
+                    style="padding: 4px 8px; font-size: 0.875rem;" title="Refresh Data">🔄 Refresh</button> Pekerjaan
+            </h1>
             <div class="header-controls">
                 <button onclick="DashboardApp.render(); Toast.show('Data diperbarui!', 'success');"
                     class="btn btn-secondary" style="display: flex; align-items: center; gap: var(--spacing-sm);">
@@ -438,8 +442,19 @@
                 this.bindEvents();
                 this.render();
 
-                // Auto refresh every 30 seconds
-                setInterval(() => this.render(), 30000);
+                // Auto refresh every 60 seconds
+                setInterval(() => this.render(), 60000);
+            },
+
+            async refreshData() {
+                Toast.show('Menarik data terbaru...', 'info');
+                const result = await Storage.pull();
+                if (result.success) {
+                    Toast.show('Data berhasil diperbarui', 'success');
+                    this.render();
+                } else {
+                    Toast.show('Gagal menarik data: ' + result.message, 'error');
+                }
             },
 
             bindEvents() {
@@ -797,8 +812,11 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Sync users to pekerja storage first
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Wait for Storage to finish initial pull and maintenance
+            await Storage.isInitialized;
+
+            // Sync users to pekerja storage
             syncUsersToPekerja();
 
             DashboardApp.init();
@@ -806,7 +824,7 @@
             // Register real-time sync callback
             Storage.onSyncCallback = () => {
                 DashboardApp.render();
-                Toast.show('Data disinkronkan', 'info');
+                // Avoid too many toasts on background sync
             };
         });
     </script>
