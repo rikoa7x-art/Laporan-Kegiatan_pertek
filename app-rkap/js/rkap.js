@@ -880,9 +880,16 @@ const RkapApp = {
             const weekData = this.state.weeklyPlans[monthKey]?.[prog.description]?.[`W${week}`] || {};
             const hasData = weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER;
             const surveyDate = weekData.SURVEY_DATE ? new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-';
+            // Secure escape for inline JS: quotes, double quotes, backslashes, and newlines
+            const escapedDesc = prog.description
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '&quot;')
+                .replace(/\n/g, ' ')
+                .replace(/\r/g, '');
             return `
                                                 <td class="p-2 border-r border-slate-700/50 bg-slate-900/30 align-top">
-                                                    <button onclick="RkapApp.openWeeklyModal('${monthKey}', '${prog.description.replace(/'/g, "\\'")}', 'W${week}')"
+                                                    <button onclick="RkapApp.openWeeklyModal('${monthKey}', '${escapedDesc}', 'W${week}')"
                                                         class="w-full p-2 rounded-lg border transition-all text-left ${hasData ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20' : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50'}">
                                                         ${hasData ? `
                                                             <div class="text-[10px] text-amber-400 font-bold mb-1">📅 ${surveyDate}</div>
@@ -1891,7 +1898,9 @@ const Toast = {
     }
 };
 
-// Start App when DOM ready
+// Initialize modal when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Expose App to Global Scope for onclick handlers
+    window.RkapApp = RkapApp;
     RkapApp.init();
 });
