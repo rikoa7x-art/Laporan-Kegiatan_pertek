@@ -258,6 +258,7 @@ const RkapApp = {
             case 'monthly': this.renderMonthly(); break;
             case 'weekly': this.renderWeekly(); break;
             case 'daily': this.renderDaily(); break;
+            case 'direksi': this.renderDireksi(); break;
             default: this.renderDashboard();
         }
     },
@@ -1618,6 +1619,232 @@ const RkapApp = {
         XLSX.utils.book_append_sheet(wb, ws, "Monitoring Harian");
         XLSX.writeFile(wb, `RKAP_Monitoring_Harian_${currentMonth}_${currentWeek}.xlsx`);
         Toast.show('Excel Monitoring Harian berhasil diunduh', 'success');
+    },
+
+    // ========== LAPORAN DIREKSI ==========
+    renderDireksi() {
+        const container = document.getElementById('view-direksi');
+        if (!container) return;
+
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const currentMonth = this.state.filters.month || months[new Date().getMonth()];
+        const year = '2026';
+        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+
+        // Get all programs with weekly data
+        const programs = (this.masterData || []).filter(p => this.state.selectedItems.has(p.description));
+
+        // Prepare report data
+        const reportData = [];
+        programs.forEach(prog => {
+            const weeklyData = this.state.weeklyPlans?.[monthKey]?.[prog.description] || {};
+
+            ['W1', 'W2', 'W3', 'W4'].forEach(weekKey => {
+                const week = weeklyData[weekKey];
+                if (week && (week.SURVEY_DATE || week.SURVEYOR_1 || week.DRAFTER)) {
+                    reportData.push({
+                        program: prog.description,
+                        branch: prog.branch,
+                        category: prog.category,
+                        isManual: prog.isManual,
+                        weekKey: weekKey,
+                        weekData: week,
+                        reviewStatus: week.reviewStatus || 'pending'
+                    });
+                }
+            });
+        });
+
+        // Stats
+        const totalScheduled = reportData.length;
+        const approved = reportData.filter(r => r.reviewStatus === 'approved').length;
+        const rejected = reportData.filter(r => r.reviewStatus === 'rejected').length;
+        const pending = reportData.filter(r => r.reviewStatus === 'pending').length;
+
+        container.innerHTML = `
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+                <div>
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <i data-lucide="briefcase" class="w-6 h-6 text-indigo-400"></i>
+                        Laporan untuk Direksi
+                    </h3>
+                    <p class="text-sm text-slate-500 mt-1">Ringkasan Rencana Kerja & Penugasan Personel</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="relative">
+                        <i data-lucide="calendar" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                        <select onchange="RkapApp.handleFilterUpdate('month', this.value); RkapApp.renderDireksi();" 
+                            class="bg-slate-800 border border-slate-700/50 rounded-xl pl-9 pr-8 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 appearance-none min-w-[140px]">
+                            ${months.map(m => `<option value="${m}" ${currentMonth === m ? 'selected' : ''}>${m}</option>`).join('')}
+                        </select>
+                    </div>
+                    <button onclick="RkapApp.exportDireksiExcel()" class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        Export Excel
+                    </button>
+                    <button onclick="window.print()" class="flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        Cetak
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="card-premium p-4">
+                    <div class="text-xs text-slate-500 uppercase font-bold tracking-wider">Total Jadwal</div>
+                    <div class="text-2xl font-bold text-white mt-1">${totalScheduled}</div>
+                </div>
+                <div class="card-premium p-4 border-l-2 border-emerald-500">
+                    <div class="text-xs text-emerald-400 uppercase font-bold tracking-wider">Disetujui</div>
+                    <div class="text-2xl font-bold text-emerald-400 mt-1">${approved}</div>
+                </div>
+                <div class="card-premium p-4 border-l-2 border-rose-500">
+                    <div class="text-xs text-rose-400 uppercase font-bold tracking-wider">Ditolak</div>
+                    <div class="text-2xl font-bold text-rose-400 mt-1">${rejected}</div>
+                </div>
+                <div class="card-premium p-4 border-l-2 border-amber-500">
+                    <div class="text-xs text-amber-400 uppercase font-bold tracking-wider">Menunggu</div>
+                    <div class="text-2xl font-bold text-amber-400 mt-1">${pending}</div>
+                </div>
+            </div>
+
+            <!-- Report Table -->
+            <div class="card-premium overflow-hidden">
+                <div class="p-4 bg-slate-800/50 border-b border-slate-700/50">
+                    <h4 class="font-bold text-white">Jadwal Pekerjaan - ${currentMonth} ${year}</h4>
+                </div>
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="w-full text-left border-collapse min-w-[1000px]">
+                        <thead>
+                            <tr class="bg-slate-800/30 border-b border-slate-700">
+                                <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-400 w-12">No</th>
+                                <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Program Kerja</th>
+                                <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-400 w-24">Cabang</th>
+                                <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-400 w-20">Minggu</th>
+                                <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-400 w-28">Tgl Survey</th>
+                                <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-400">Tim Pelaksana</th>
+                                <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-400 w-32 text-center">Status</th>
+                                <th class="p-3 text-xs font-bold uppercase tracking-wider text-slate-400 w-28 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800">
+                            ${reportData.length === 0 ? `
+                                <tr>
+                                    <td colspan="8" class="p-12 text-center text-slate-500 italic">
+                                        <div class="flex flex-col items-center gap-3">
+                                            <i data-lucide="inbox" class="w-12 h-12 text-slate-600"></i>
+                                            <p>Belum ada jadwal untuk bulan ini</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ` : reportData.map((item, idx) => {
+            const w = item.weekData;
+            const surveyDate = w.SURVEY_DATE ? new Date(w.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }) : '-';
+            const team = [w.SURVEYOR_1, w.SURVEYOR_2, w.DRAFTER, w.ESTIMATOR, w.MONEV].filter(Boolean);
+
+            let statusBadge = '';
+            if (item.reviewStatus === 'approved') {
+                statusBadge = `<span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">✓ Disetujui</span>`;
+            } else if (item.reviewStatus === 'rejected') {
+                statusBadge = `<span class="px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 text-xs font-bold">✗ Ditolak</span>`;
+            } else {
+                statusBadge = `<span class="px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold">⏳ Menunggu</span>`;
+            }
+
+            return `
+                                    <tr class="hover:bg-slate-800/30 transition-colors">
+                                        <td class="p-3 text-slate-400 font-mono text-sm">${idx + 1}</td>
+                                        <td class="p-3">
+                                            <div class="font-medium text-white">${item.program}</div>
+                                            ${item.isManual ? `<span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400">TAMBAHAN</span>` : ''}
+                                        </td>
+                                        <td class="p-3 text-slate-400 text-sm">${item.branch || '-'}</td>
+                                        <td class="p-3 text-indigo-400 font-bold text-sm">${item.weekKey.replace('W', 'M')}</td>
+                                        <td class="p-3 text-amber-400 font-medium text-sm">${surveyDate}</td>
+                                        <td class="p-3">
+                                            <div class="flex flex-wrap gap-1">
+                                                ${team.map(t => `<span class="px-2 py-0.5 rounded bg-slate-700 text-slate-300 text-[10px]">${t}</span>`).join('')}
+                                            </div>
+                                        </td>
+                                        <td class="p-3 text-center">${statusBadge}</td>
+                                        <td class="p-3 text-center">
+                                            <div class="flex items-center justify-center gap-1">
+                                                <button onclick="RkapApp.setReviewStatus('${monthKey}', '${item.program.replace(/'/g, "\\'")}', '${item.weekKey}', 'approved')" 
+                                                    class="p-2 rounded-lg ${item.reviewStatus === 'approved' ? 'bg-emerald-500 text-white' : 'text-emerald-400 hover:bg-emerald-500/20'} transition-all" title="Setujui">
+                                                    <i data-lucide="check" class="w-4 h-4"></i>
+                                                </button>
+                                                <button onclick="RkapApp.setReviewStatus('${monthKey}', '${item.program.replace(/'/g, "\\'")}', '${item.weekKey}', 'rejected')" 
+                                                    class="p-2 rounded-lg ${item.reviewStatus === 'rejected' ? 'bg-rose-500 text-white' : 'text-rose-400 hover:bg-rose-500/20'} transition-all" title="Tolak">
+                                                    <i data-lucide="x" class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+        }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        lucide.createIcons();
+    },
+
+    setReviewStatus(monthKey, progDesc, weekKey, status) {
+        if (!this.state.weeklyPlans?.[monthKey]?.[progDesc]?.[weekKey]) return;
+
+        this.state.weeklyPlans[monthKey][progDesc][weekKey].reviewStatus = status;
+        this.saveData();
+        this.renderDireksi();
+
+        const statusText = status === 'approved' ? 'disetujui' : 'ditolak';
+        Toast.show(`Jadwal ${statusText}`, status === 'approved' ? 'success' : 'info');
+    },
+
+    exportDireksiExcel() {
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const currentMonth = this.state.filters.month || months[new Date().getMonth()];
+        const year = '2026';
+        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+
+        const programs = (this.masterData || []).filter(p => this.state.selectedItems.has(p.description));
+        const data = [];
+
+        programs.forEach(prog => {
+            const weeklyData = this.state.weeklyPlans?.[monthKey]?.[prog.description] || {};
+
+            ['W1', 'W2', 'W3', 'W4'].forEach(weekKey => {
+                const week = weeklyData[weekKey];
+                if (week && (week.SURVEY_DATE || week.SURVEYOR_1)) {
+                    data.push({
+                        'Program Kerja': prog.description,
+                        'Cabang': prog.branch || '-',
+                        'Kategori': prog.category || '-',
+                        'Minggu': weekKey.replace('W', 'Minggu '),
+                        'Tgl Survey': week.SURVEY_DATE || '-',
+                        'Surveyor 1': week.SURVEYOR_1 || '-',
+                        'Surveyor 2': week.SURVEYOR_2 || '-',
+                        'Drafter': week.DRAFTER || '-',
+                        'Estimator': week.ESTIMATOR || '-',
+                        'M&E': week.MONEV || '-',
+                        'Status': week.reviewStatus === 'approved' ? 'Disetujui' : week.reviewStatus === 'rejected' ? 'Ditolak' : 'Menunggu'
+                    });
+                }
+            });
+        });
+
+        if (data.length === 0) {
+            Toast.show('Tidak ada data untuk diekspor', 'warning');
+            return;
+        }
+
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.json_to_sheet(data);
+        XLSX.utils.book_append_sheet(wb, ws, "Laporan Direksi");
+        XLSX.writeFile(wb, `Laporan_Direksi_${currentMonth}_${year}.xlsx`);
+        Toast.show('Excel Laporan Direksi berhasil diunduh', 'success');
     }
 };
 
