@@ -13,20 +13,24 @@ const Storage = {
         LAPORAN_HARIAN: 'pertek_laporan_harian',
         PEKERJA: 'pertek_pekerja',
         EVALUASI: 'pertek_evaluasi',
-        LAPORAN_DIREKSI: 'pertek_laporan_direksi'
+        LAPORAN_DIREKSI: 'pertek_laporan_direksi',
+        RKAP: 'pertek_rkap'
     },
 
     /**
      * Get data from localStorage
      * @param {string} key - Storage key
-     * @returns {Array} - Parsed data array or empty array
+     * @param {boolean} raw - If true, return object as is without array conversion
+     * @returns {Array|Object} - Parsed data
      */
-    get(key) {
+    get(key, raw = false) {
         try {
             const data = localStorage.getItem(key);
-            if (!data) return [];
+            if (!data) return raw ? {} : [];
 
             const parsed = JSON.parse(data);
+
+            if (raw) return parsed;
 
             // If it's already an array, return it
             if (Array.isArray(parsed)) return parsed;
@@ -39,7 +43,7 @@ const Storage = {
             return [];
         } catch (error) {
             console.error('Error reading from storage:', error);
-            return [];
+            return raw ? {} : [];
         }
     },
 
@@ -448,12 +452,8 @@ const Storage = {
             this.set(this.KEYS.PEKERJA, cleanedPekerja, true);
             console.log('Cleaned up duplicate pekerja entries');
         }
-    }
+    },
 };
-
-Storage.isInitialized = new Promise(resolve => {
-    Storage._resolveInit = resolve;
-});
 
 // Initialize sample data and cloud on load
 document.addEventListener('DOMContentLoaded', async () => {

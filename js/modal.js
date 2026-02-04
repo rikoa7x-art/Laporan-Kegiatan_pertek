@@ -107,7 +107,17 @@ const Modal = {
      * Close modal
      */
     close() {
-        this.overlay.classList.remove('active');
+        if (this.overlay) {
+            this.overlay.classList.remove('active');
+            this.overlay.style.opacity = '0';
+            this.overlay.style.pointerEvents = 'none';
+            if (this.modal) {
+                this.modal.style.transform = 'scale(0.95)';
+            }
+            setTimeout(() => {
+                if (this.overlay) this.overlay.style.display = 'none';
+            }, 300);
+        }
         document.body.style.overflow = '';
         this.currentCallback = null;
     },
@@ -223,6 +233,41 @@ const Modal = {
                 resolve(false);
             };
         });
+    },
+
+    /**
+     * Show modal with simple parameters (Convenience method)
+     * @param {string} title - Modal title
+     * @param {string} content - Modal body HTML content
+     * @param {string} type - Optional type for styling (info, success, warning, error)
+     */
+    show(title, content, type = 'info') {
+        // Ensure overlay element is available
+        if (!this.overlay) {
+            this.init();
+        }
+
+        this.title.textContent = title;
+        this.body.innerHTML = content;
+
+        // Hide footer for simple display modals
+        this.footer.style.display = 'none';
+
+        // Show modal
+        this.overlay.style.display = 'flex';
+        setTimeout(() => {
+            this.overlay.classList.add('active');
+            this.overlay.style.opacity = '1';
+            this.overlay.style.pointerEvents = 'auto';
+            this.modal.style.transform = 'scale(1)';
+        }, 10);
+
+        document.body.style.overflow = 'hidden';
+
+        // Re-initialize lucide icons in modal content
+        if (window.lucide) {
+            setTimeout(() => lucide.createIcons(), 50);
+        }
     }
 };
 
