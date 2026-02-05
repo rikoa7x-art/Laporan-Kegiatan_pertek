@@ -1106,9 +1106,17 @@ const RkapApp = {
         }
 
         this.saveData();
+
+        // Push to cloud immediately so Dashboard Monitoring gets updated
+        Storage.push(Storage.KEYS.RKAP).then(() => {
+            console.log('✅ RKAP weekly data pushed to cloud');
+        }).catch(err => {
+            console.log('⚠️ Cloud sync skipped:', err.message);
+        });
+
         Modal.close();
         this.renderWeekly();
-        Toast.show('Jadwal berhasil disimpan', 'success');
+        Toast.show('Jadwal berhasil disimpan & disinkronkan', 'success');
     },
 
     updateSurveyDate(monthKey, progDesc, weekKey, surveyDate) {
@@ -1142,6 +1150,10 @@ const RkapApp = {
         }
 
         this.saveData();
+
+        // Push to cloud immediately
+        Storage.push(Storage.KEYS.RKAP).catch(err => console.log('Cloud sync skipped:', err.message));
+
         Toast.show('Tanggal berhasil diatur otomatis', 'success');
     },
 
