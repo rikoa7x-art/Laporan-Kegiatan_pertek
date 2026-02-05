@@ -318,28 +318,33 @@
         </header>
 
         <div class="dashboard-content">
-            <!-- Summary & Workflow -->
-            <div
-                style="display: grid; grid-template-columns: 1fr 300px; gap: var(--spacing-lg); margin-bottom: var(--spacing-lg);">
-                <div id="workflowOverview" class="workflow-overview" style="margin-bottom: 0;">
-                    <!-- Will be rendered by JS -->
+            <!-- RKAP Weekly Schedule - Main Feature -->
+            <div class="pekerjaan-section" style="margin-bottom: var(--spacing-lg);">
+                <div class="section-header"
+                    style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none;">
+                    <h3 style="color: white; display: flex; align-items: center; gap: 8px;">
+                        📅 Rencana Program Kerja Mingguan (RKAP)
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                        <span id="rkap-week-label"
+                            style="font-size: 0.875rem; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;"></span>
+                        <a href="../app-rkap/index.html#weekly" class="btn btn-secondary"
+                            style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 0.75rem;">
+                            🚀 Kelola RKAP
+                        </a>
+                    </div>
                 </div>
-                <div id="summaryStats" class="dashboard-grid"
-                    style="grid-template-columns: repeat(2, 1fr); gap: var(--spacing-sm); margin-bottom: 0;">
+                <div class="section-body" id="rkap-weekly-list" style="padding: var(--spacing-lg);">
                     <!-- Will be rendered by JS -->
                 </div>
             </div>
 
-            <!-- Rencana Minggu Ini dari RKAP -->
-            <div class="pekerjaan-section" style="margin-bottom: var(--spacing-lg);">
-                <div class="section-header">
-                    <h3>📅 Rencana Minggu Ini (RKAP)</h3>
-                    <span id="rkap-week-label" style="font-size: 0.75rem; color: var(--text-muted);"></span>
-                </div>
-                <div class="section-body" id="rkap-weekly-list">
-                    <!-- Will be rendered by JS -->
-                </div>
+            <!-- Summary Stats -->
+            <div id="summaryStats" class="dashboard-grid"
+                style="grid-template-columns: repeat(6, 1fr); gap: var(--spacing-sm); margin-bottom: var(--spacing-lg);">
+                <!-- Will be rendered by JS -->
             </div>
+
 
             <!-- All Pekerjaan Table -->
             <div class="pekerjaan-section">
@@ -483,38 +488,12 @@
             },
 
             render() {
-                this.renderWorkflowOverview();
                 this.renderSummaryStats();
                 this.renderRKAPWeeklyPlans();
                 this.renderTable();
                 this.renderCategoryLists();
             },
 
-            renderWorkflowOverview() {
-                const container = document.getElementById('workflowOverview');
-                const pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
-
-                const stages = [
-                    { status: 'survey', icon: '📍', name: 'Survey' },
-                    { status: 'drafting', icon: '✏️', name: 'Gambar' },
-                    { status: 'estimasi', icon: '📊', name: 'RAB' },
-                    { status: 'review_asman', icon: '📋', name: 'Review' },
-                    { status: 'approval', icon: '✅', name: 'Approval' },
-                    { status: 'wasdal', icon: '👁️', name: 'Wasdal' },
-                    { status: 'selesai', icon: '✔️', name: 'Selesai' }
-                ];
-
-                container.innerHTML = stages.map(stage => {
-                    const count = pekerjaan.filter(p => p.status === stage.status).length;
-                    return `
-                        <div class="workflow-stage">
-                            <div class="stage-icon">${stage.icon}</div>
-                            <div class="stage-name">${stage.name}</div>
-                            <div class="stage-count">${count}</div>
-                        </div>
-                    `;
-                }).join('');
-            },
 
             renderSummaryStats() {
                 const container = document.getElementById('summaryStats');
@@ -718,9 +697,12 @@
 
                 if (!rkapData || !rkapData.weeklyPlans) {
                     container.innerHTML = `
-                        <div style="padding: var(--spacing-lg); text-align: center; color: var(--text-muted);">
-                            <p>Belum ada rencana mingguan dari RKAP.</p>
-                            <a href="../app-rkap/index.html#weekly" style="color: var(--primary);">Buat Rencana Mingguan di RKAP →</a>
+                        <div style="padding: var(--spacing-xl); text-align: center; color: var(--text-muted);">
+                            <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">📋</div>
+                            <p style="font-size: 1rem; margin-bottom: var(--spacing-md);">Belum ada rencana program kerja mingguan dari RKAP.</p>
+                            <a href="../app-rkap/index.html#weekly" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                                🚀 Buat Rencana di RKAP
+                            </a>
                         </div>
                     `;
                     return;
@@ -742,83 +724,136 @@
                 else if (dayOfMonth > 7) currentWeek = 'W2';
 
                 if (weekLabel) {
-                    weekLabel.textContent = `${monthNames[now.getMonth()]} ${year} - Minggu ${currentWeek.replace('W', '')}`;
+                    weekLabel.textContent = `${monthNames[now.getMonth()]} ${year} - Minggu ke-${currentWeek.replace('W', '')}`;
                 }
 
                 const weeklyPlans = rkapData.weeklyPlans[monthKey];
 
                 if (!weeklyPlans || Object.keys(weeklyPlans).length === 0) {
                     container.innerHTML = `
-                        <div style="padding: var(--spacing-lg); text-align: center; color: var(--text-muted);">
-                            <p>Tidak ada rencana untuk ${monthNames[now.getMonth()]} ${year}.</p>
-                            <a href="../app-rkap/index.html#weekly" style="color: var(--primary);">Buat Rencana Mingguan di RKAP →</a>
+                        <div style="padding: var(--spacing-xl); text-align: center; color: var(--text-muted);">
+                            <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">📅</div>
+                            <p style="font-size: 1rem; margin-bottom: var(--spacing-md);">Tidak ada rencana untuk ${monthNames[now.getMonth()]} ${year}.</p>
+                            <a href="../app-rkap/index.html#weekly" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                                🚀 Buat Rencana di RKAP
+                            </a>
                         </div>
                     `;
                     return;
                 }
 
-                // Collect all programs for the current week
-                const items = [];
+                // Collect all programs grouped by week
+                const weekGroups = { W1: [], W2: [], W3: [], W4: [] };
+
                 Object.entries(weeklyPlans).forEach(([programName, weeks]) => {
-                    const weekData = weeks[currentWeek];
-                    // Check if weekData exists and has any data (SURVEYOR_1, SURVEY_DATE, etc.)
-                    if (weekData && (weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER)) {
-                        // Collect personnel from RKAP structure
-                        const personnel = [];
-                        if (weekData.SURVEYOR_1) personnel.push(weekData.SURVEYOR_1);
-                        if (weekData.SURVEYOR_2) personnel.push(weekData.SURVEYOR_2);
-                        if (weekData.DRAFTER) personnel.push(weekData.DRAFTER);
-                        if (weekData.ESTIMATOR) personnel.push(weekData.ESTIMATOR);
-                        if (weekData.MONEV) personnel.push(weekData.MONEV);
+                    ['W1', 'W2', 'W3', 'W4'].forEach(week => {
+                        const weekData = weeks[week];
+                        if (weekData && (weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER)) {
+                            const personnel = [];
+                            if (weekData.SURVEYOR_1) personnel.push(`📍 ${weekData.SURVEYOR_1}`);
+                            if (weekData.SURVEYOR_2) personnel.push(`📍 ${weekData.SURVEYOR_2}`);
+                            if (weekData.DRAFTER) personnel.push(`✏️ ${weekData.DRAFTER}`);
+                            if (weekData.ESTIMATOR) personnel.push(`📊 ${weekData.ESTIMATOR}`);
+                            if (weekData.MONEV) personnel.push(`👁️ ${weekData.MONEV}`);
 
-                        items.push({
-                            programName,
-                            surveyDate: weekData.SURVEY_DATE || weekData.date || '-',
-                            personnel: [...new Set(personnel)], // Remove duplicates
-                            drafterDate: weekData.DRAFTER_DATE,
-                            monevDate: weekData.MONEV_DATE
-                        });
-                    }
+                            weekGroups[week].push({
+                                programName,
+                                surveyDate: weekData.SURVEY_DATE || '-',
+                                personnel: [...new Set(personnel)]
+                            });
+                        }
+                    });
                 });
 
-                if (items.length === 0) {
-                    container.innerHTML = `
-                        <div style="padding: var(--spacing-lg); text-align: center; color: var(--text-muted);">
-                            <p>Tidak ada rencana untuk minggu ini (${currentWeek.replace('W', 'Minggu ')}).</p>
-                            <a href="../app-rkap/index.html#weekly" style="color: var(--primary);">Buat Rencana Mingguan di RKAP →</a>
-                        </div>
-                    `;
-                    return;
-                }
-
-                // Sort by survey date
-                items.sort((a, b) => {
-                    if (!a.surveyDate || a.surveyDate === '-') return 1;
-                    if (!b.surveyDate || b.surveyDate === '-') return -1;
-                    return new Date(a.surveyDate) - new Date(b.surveyDate);
+                // Sort each week's items by survey date
+                Object.keys(weekGroups).forEach(week => {
+                    weekGroups[week].sort((a, b) => {
+                        if (!a.surveyDate || a.surveyDate === '-') return 1;
+                        if (!b.surveyDate || b.surveyDate === '-') return -1;
+                        return new Date(a.surveyDate) - new Date(b.surveyDate);
+                    });
                 });
+
+                // Calculate total programs this month
+                const totalPrograms = Object.values(weekGroups).reduce((sum, items) => sum + items.length, 0);
+
+                // Build week tabs and content
+                const weekNames = { W1: 'Minggu 1', W2: 'Minggu 2', W3: 'Minggu 3', W4: 'Minggu 4' };
 
                 container.innerHTML = `
-                    <div style="display: grid; gap: var(--spacing-sm);">
-                        ${items.map(item => `
-                            <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary);">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-xs);">
-                                    <strong style="font-size: 0.875rem; color: var(--text-primary);">📋 ${Utils.escapeHtml(item.programName)}</strong>
-                                    ${item.surveyDate && item.surveyDate !== '-' ?
-                        `<span style="font-size: 0.75rem; color: var(--primary); background: var(--primary-light); padding: 2px 8px; border-radius: 4px;">📅 ${Utils.formatDate(item.surveyDate)}</span>` :
-                        '<span style="font-size: 0.75rem; color: var(--text-muted);">📅 Belum dijadwalkan</span>'
+                    <div style="margin-bottom: var(--spacing-md);">
+                        <div style="display: flex; gap: var(--spacing-sm); margin-bottom: var(--spacing-md); flex-wrap: wrap;">
+                            ${['W1', 'W2', 'W3', 'W4'].map(week => `
+                                <button onclick="DashboardApp.showWeek('${week}')" 
+                                    id="week-btn-${week}"
+                                    class="btn ${week === currentWeek ? 'btn-primary' : 'btn-secondary'}"
+                                    style="flex: 1; min-width: 100px; display: flex; flex-direction: column; align-items: center; padding: var(--spacing-sm) var(--spacing-md);">
+                                    <span style="font-weight: 600;">${weekNames[week]}</span>
+                                    <span style="font-size: 0.7rem; opacity: 0.8;">${weekGroups[week].length} program</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right;">
+                            Total ${totalPrograms} program kerja bulan ini
+                        </div>
+                    </div>
+                    
+                    ${['W1', 'W2', 'W3', 'W4'].map(week => `
+                        <div id="week-content-${week}" style="display: ${week === currentWeek ? 'block' : 'none'};">
+                            ${weekGroups[week].length === 0 ? `
+                                <div style="padding: var(--spacing-lg); text-align: center; color: var(--text-muted); background: var(--bg-tertiary); border-radius: var(--radius-md);">
+                                    <p>🗓️ Tidak ada program untuk ${weekNames[week]}</p>
+                                </div>
+                            ` : `
+                                <div style="display: grid; gap: var(--spacing-sm); grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));">
+                                    ${weekGroups[week].map((item, idx) => `
+                                        <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary); border-left: 3px solid var(--primary);">
+                                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-xs);">
+                                                <span style="font-size: 0.7rem; color: var(--text-muted);">#${idx + 1}</span>
+                                                ${item.surveyDate && item.surveyDate !== '-' ?
+                        `<span style="font-size: 0.7rem; color: white; background: var(--primary); padding: 2px 8px; border-radius: 4px;">📅 ${Utils.formatDate(item.surveyDate)}</span>` :
+                        '<span style="font-size: 0.7rem; color: var(--text-muted);">📅 Belum dijadwalkan</span>'
                     }
+                                            </div>
+                                            <div style="font-weight: 600; font-size: 0.875rem; color: var(--text-primary); margin-bottom: var(--spacing-xs);">
+                                                ${Utils.escapeHtml(item.programName)}
+                                            </div>
+                                            <div style="font-size: 0.75rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 4px;">
+                                                ${item.personnel.length > 0 ?
+                        item.personnel.map(p => `<span style="background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px;">${p}</span>`).join('') :
+                        '<span>👥 Belum ada personil</span>'
+                    }
+                                            </div>
+                                        </div>
+                                    `).join('')}
                                 </div>
-                                <div style="font-size: 0.75rem; color: var(--text-muted);">
-                                    👥 ${item.personnel.length > 0 ? item.personnel.join(', ') : 'Belum ada personil'}
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div style="padding: var(--spacing-sm); text-align: center; border-top: 1px solid var(--border-color); margin-top: var(--spacing-sm);">
-                        <a href="../app-rkap/index.html#weekly" style="font-size: 0.75rem; color: var(--primary);">Lihat Semua Rencana di RKAP →</a>
-                    </div>
+                            `}
+                        </div>
+                    `).join('')}
                 `;
+            },
+
+            // Show specific week content
+            showWeek(week) {
+                // Hide all week contents
+                ['W1', 'W2', 'W3', 'W4'].forEach(w => {
+                    const content = document.getElementById(`week-content-${w}`);
+                    const btn = document.getElementById(`week-btn-${w}`);
+                    if (content) content.style.display = 'none';
+                    if (btn) {
+                        btn.classList.remove('btn-primary');
+                        btn.classList.add('btn-secondary');
+                    }
+                });
+
+                // Show selected week
+                const selectedContent = document.getElementById(`week-content-${week}`);
+                const selectedBtn = document.getElementById(`week-btn-${week}`);
+                if (selectedContent) selectedContent.style.display = 'block';
+                if (selectedBtn) {
+                    selectedBtn.classList.remove('btn-secondary');
+                    selectedBtn.classList.add('btn-primary');
+                }
             },
 
             getPelaksanaNames(pelaksanaIds, pekerja) {
