@@ -695,11 +695,22 @@
                 // Get RKAP data from storage
                 const rkapData = Storage.get(Storage.KEYS.RKAP, true);
 
-                if (!rkapData || !rkapData.weeklyPlans) {
+                // Debug: Log what data we received
+                console.log('📊 RKAP Data from Storage:', rkapData);
+                console.log('📅 Weekly Plans:', rkapData?.weeklyPlans);
+
+                if (!rkapData || !rkapData.weeklyPlans || Object.keys(rkapData.weeklyPlans).length === 0) {
+                    // Check if there's any data at all in RKAP storage
+                    const availableKeys = rkapData ? Object.keys(rkapData) : [];
+                    console.log('⚠️ No weeklyPlans found. Available keys in RKAP data:', availableKeys);
+
                     container.innerHTML = `
                         <div style="padding: var(--spacing-xl); text-align: center; color: var(--text-muted);">
                             <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">📋</div>
                             <p style="font-size: 1rem; margin-bottom: var(--spacing-md);">Belum ada rencana program kerja mingguan dari RKAP.</p>
+                            <p style="font-size: 0.75rem; margin-bottom: var(--spacing-md); color: var(--text-muted);">
+                                Klik tombol "🔄 Sinkronkan Data" untuk menarik data terbaru dari cloud.
+                            </p>
                             <a href="../app-rkap/index.html#weekly" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
                                 🚀 Buat Rencana di RKAP
                             </a>
@@ -716,6 +727,10 @@
                 const year = now.getFullYear();
                 const monthKey = `${currentMonth}_${year}`;
 
+                // Debug: Log the month key we're looking for
+                console.log('🔍 Looking for monthKey:', monthKey);
+                console.log('📋 Available months in weeklyPlans:', Object.keys(rkapData.weeklyPlans));
+
                 // Determine current week (W1, W2, W3, W4)
                 const dayOfMonth = now.getDate();
                 let currentWeek = 'W1';
@@ -729,11 +744,23 @@
 
                 const weeklyPlans = rkapData.weeklyPlans[monthKey];
 
+                // Debug: Log what we found
+                console.log('📅 Weekly plans for', monthKey, ':', weeklyPlans);
+
                 if (!weeklyPlans || Object.keys(weeklyPlans).length === 0) {
+                    // Show available months
+                    const availableMonths = Object.keys(rkapData.weeklyPlans);
+                    const availableMonthsText = availableMonths.length > 0
+                        ? `Ada jadwal untuk: ${availableMonths.join(', ')}`
+                        : 'Belum ada jadwal apapun.';
+
                     container.innerHTML = `
                         <div style="padding: var(--spacing-xl); text-align: center; color: var(--text-muted);">
                             <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">📅</div>
                             <p style="font-size: 1rem; margin-bottom: var(--spacing-md);">Tidak ada rencana untuk ${monthNames[now.getMonth()]} ${year}.</p>
+                            <p style="font-size: 0.75rem; margin-bottom: var(--spacing-md); color: var(--text-muted);">
+                                ${availableMonthsText}
+                            </p>
                             <a href="../app-rkap/index.html#weekly" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
                                 🚀 Buat Rencana di RKAP
                             </a>
@@ -741,6 +768,7 @@
                     `;
                     return;
                 }
+
 
                 // Collect all programs grouped by week
                 const weekGroups = { W1: [], W2: [], W3: [], W4: [] };
