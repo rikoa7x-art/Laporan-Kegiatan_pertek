@@ -1048,6 +1048,10 @@ const RkapApp = {
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-700/50">
+                    <button onclick="RkapApp.clearWeeklySchedule('${monthKey}', '${progDesc.replace(/'/g, "\\'")}', '${weekKey}')" 
+                        class="px-4 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium transition-all border border-red-500/30">
+                        <i data-lucide="trash-2" class="w-4 h-4 inline"></i> Hapus
+                    </button>
                     <button onclick="Modal.close()" class="flex-1 px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-medium transition-all">
                         Batal
                     </button>
@@ -1117,6 +1121,39 @@ const RkapApp = {
         Modal.close();
         this.renderWeekly();
         Toast.show('Jadwal berhasil disimpan & disinkronkan', 'success');
+    },
+
+    // Clear/delete a weekly schedule
+    clearWeeklySchedule(monthKey, progDesc, weekKey) {
+        if (!this.state.weeklyPlans?.[monthKey]?.[progDesc]?.[weekKey]) {
+            Toast.show('Tidak ada jadwal untuk dihapus', 'warning');
+            Modal.close();
+            return;
+        }
+
+        // Delete the week data
+        delete this.state.weeklyPlans[monthKey][progDesc][weekKey];
+
+        // Clean up empty objects
+        if (Object.keys(this.state.weeklyPlans[monthKey][progDesc]).length === 0) {
+            delete this.state.weeklyPlans[monthKey][progDesc];
+        }
+        if (Object.keys(this.state.weeklyPlans[monthKey]).length === 0) {
+            delete this.state.weeklyPlans[monthKey];
+        }
+
+        this.saveData();
+
+        // Push to cloud immediately so Dashboard gets updated
+        Storage.push(Storage.KEYS.RKAP).then(() => {
+            console.log('✅ RKAP weekly schedule deleted and synced to cloud');
+        }).catch(err => {
+            console.log('⚠️ Cloud sync skipped:', err.message);
+        });
+
+        Modal.close();
+        this.renderWeekly();
+        Toast.show('Jadwal berhasil dihapus & disinkronkan', 'success');
     },
 
     updateSurveyDate(monthKey, progDesc, weekKey, surveyDate) {
