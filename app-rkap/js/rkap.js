@@ -565,6 +565,15 @@ const RkapApp = {
     },
 
     openAddProgramModal() {
+        // Get unique branches from masterData
+        const branches = [...new Set((this.masterData || []).map(p => p.branch).filter(Boolean))].sort();
+        const branchOptions = branches.map(b => `<option value="${b}">${b}</option>`).join('');
+
+        // Month options for scheduling
+        const months = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOPEMBER', 'DESEMBER'];
+        const currentMonthIndex = new Date().getMonth();
+        const monthOptions = months.map((m, i) => `<option value="${m}" ${i === currentMonthIndex ? 'selected' : ''}>${m}</option>`).join('');
+
         const content = `
             <div class="space-y-5">
                 <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
@@ -586,22 +595,23 @@ const RkapApp = {
                             <label class="text-sm font-bold text-white mb-2 block">Cabang *</label>
                             <select id="new-prog-branch" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
                                 <option value="">-- Pilih Cabang --</option>
-                                <option value="Tangerang">Tangerang</option>
-                                <option value="Serpong">Serpong</option>
-                                <option value="Tigaraksa">Tigaraksa</option>
-                                <option value="Balaraja">Balaraja</option>
-                                <option value="Cikupa">Cikupa</option>
-                                <option value="Curug">Curug</option>
+                                ${branchOptions}
                             </select>
                         </div>
                         <div>
-                            <label class="text-sm font-bold text-white mb-2 block">Kategori</label>
-                            <select id="new-prog-category" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
-                                <option value="Pertek">Pertek</option>
-                                <option value="Pengadaan Tanah">Pengadaan Tanah</option>
-                                <option value="Lainnya">Lainnya</option>
+                            <label class="text-sm font-bold text-white mb-2 block">Bulan Rencana *</label>
+                            <select id="new-prog-month" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                                ${monthOptions}
                             </select>
                         </div>
+                    </div>
+                    <div>
+                        <label class="text-sm font-bold text-white mb-2 block">Kategori</label>
+                        <select id="new-prog-category" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500">
+                            <option value="Pertek">Pertek</option>
+                            <option value="Pengadaan Tanah">Pengadaan Tanah</option>
+                            <option value="Lainnya">Lainnya</option>
+                        </select>
                     </div>
                     <div>
                         <label class="text-sm font-bold text-white mb-2 block">Keterangan (Opsional)</label>
@@ -630,6 +640,7 @@ const RkapApp = {
         const name = document.getElementById('new-prog-name').value.trim();
         const branch = document.getElementById('new-prog-branch').value;
         const category = document.getElementById('new-prog-category').value;
+        const month = document.getElementById('new-prog-month').value;
         const notes = document.getElementById('new-prog-notes').value.trim();
 
         if (!name) {
@@ -648,13 +659,19 @@ const RkapApp = {
             return;
         }
 
+        // Create monthly allocation object with selected month
+        const monthly = {};
+        if (month) {
+            monthly[month] = 1; // Set to 1 to mark as having allocation for this month
+        }
+
         const newProgram = {
             code: `MANUAL-${Date.now()}`,
             description: name,
             branch: branch,
             category: category,
             pagu: 0,
-            monthly: {},
+            monthly: monthly,
             notes: notes,
             isManual: true,
             createdAt: new Date().toISOString()
