@@ -761,12 +761,22 @@
                 const items = [];
                 Object.entries(weeklyPlans).forEach(([programName, weeks]) => {
                     const weekData = weeks[currentWeek];
-                    if (weekData && weekData.survey && weekData.survey.length > 0) {
+                    // Check if weekData exists and has any data (SURVEYOR_1, SURVEY_DATE, etc.)
+                    if (weekData && (weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER)) {
+                        // Collect personnel from RKAP structure
+                        const personnel = [];
+                        if (weekData.SURVEYOR_1) personnel.push(weekData.SURVEYOR_1);
+                        if (weekData.SURVEYOR_2) personnel.push(weekData.SURVEYOR_2);
+                        if (weekData.DRAFTER) personnel.push(weekData.DRAFTER);
+                        if (weekData.ESTIMATOR) personnel.push(weekData.ESTIMATOR);
+                        if (weekData.MONEV) personnel.push(weekData.MONEV);
+
                         items.push({
                             programName,
-                            surveyDate: weekData.surveyDate || '-',
-                            personnel: weekData.survey || [],
-                            tasks: weekData.tasks || {}
+                            surveyDate: weekData.SURVEY_DATE || weekData.date || '-',
+                            personnel: [...new Set(personnel)], // Remove duplicates
+                            drafterDate: weekData.DRAFTER_DATE,
+                            monevDate: weekData.MONEV_DATE
                         });
                     }
                 });
