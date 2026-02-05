@@ -482,10 +482,8 @@
                 document.getElementById('currentUser').style.display = 'flex';
                 document.getElementById('currentUserName').textContent = '👤 ' + currentUser.nama;
 
-                // Show add button for management (manager, asman_sipil, asman_perpipaan)
-                if (currentUser.role === 'manager' || currentUser.role === 'asman_sipil' || currentUser.role === 'asman_perpipaan') {
-                    document.getElementById('btnAdd').style.display = '';
-                }
+                // Show add button for all users (semua pekerja bisa input pekerjaan baru)
+                document.getElementById('btnAdd').style.display = '';
 
                 localStorage.setItem('pertek_user', currentUser.id);
                 Toast.show('Selamat datang, ' + currentUser.nama + '!', 'success');
