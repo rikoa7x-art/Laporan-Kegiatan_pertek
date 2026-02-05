@@ -1032,6 +1032,12 @@
             const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, id);
             if (!pekerjaan) return;
 
+            // Jika status wasdal, tampilkan form pelaporan pengawasan khusus
+            if (pekerjaan.status === 'wasdal') {
+                showWasdalReportForm(id, pekerjaan);
+                return;
+            }
+
             const nextStatus = Utils.getNextWorkflowStatus(pekerjaan.status);
             if (!nextStatus) {
                 Toast.show('Pekerjaan sudah selesai', 'info');
@@ -1184,6 +1190,149 @@
             });
         }
 
+        // Form khusus untuk laporan pengawasan (wasdal)
+        function showWasdalReportForm(id, pekerjaan) {
+            const today = Utils.formatDateInput(new Date());
+            const currentProgress = pekerjaan.progress || 0;
+
+            const content = `
+                <form id="formWasdalReport">
+                    <div style="background: var(--bg-tertiary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
+                        <p style="color: var(--text-muted); margin-bottom: var(--spacing-sm);">Pekerjaan yang Diawasi:</p>
+                        <h3>${Utils.escapeHtml(pekerjaan.namaPekerjaan)}</h3>
+                        <p style="margin-top: var(--spacing-sm);">
+                            📍 Lokasi: ${Utils.escapeHtml(pekerjaan.lokasi || '-')}
+                        </p>
+                        <p style="margin-top: var(--spacing-sm);">
+                            Progress Saat Ini: <strong style="color: var(--primary);">${currentProgress}%</strong>
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">📊 Laporan Progress</label>
+                        <select name="progressPengawasan" id="selectProgressReport" class="form-select" required>
+                            <option value="">-- Pilih Progress --</option>
+                            ${currentProgress < 60 ? '<option value="60">📊 Progress 60% (Tahap Pengerjaan)</option>' : ''}
+                            ${currentProgress < 100 ? '<option value="100">✅ Selesai 100% (Pekerjaan Selesai)</option>' : ''}
+                        </select>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--spacing-xs);">
+                            Laporkan progress pekerjaan: 60% saat pengerjaan berlangsung, 100% saat selesai.
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">📅 Tanggal Pengawasan</label>
+                        <input type="date" name="tanggalPengawasan" class="form-input" value="${today}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">📷 Foto Dokumentasi Progress</label>
+                        <input type="file" id="fotoWasdal" class="form-input" accept=".jpg,.jpeg,.png" multiple style="padding: var(--spacing-sm);">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-top: var(--spacing-xs);">
+                            Upload foto kondisi pekerjaan (maks. 5 foto, masing-masing maks. 5MB)
+                        </p>
+                        <div id="fotoWasdalPreview" style="display: flex; flex-wrap: wrap; gap: var(--spacing-sm); margin-top: var(--spacing-sm);"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">📝 Catatan Pengawasan</label>
+                        <textarea name="catatanPengawasan" class="form-textarea" rows="3" placeholder="Kondisi lapangan, kendala, catatan penting..."></textarea>
+                    </div>
+                </form>
+            `;
+
+            // Store uploaded photos
+            let uploadedFotos = [];
+
+            Modal.open({
+                title: '👁️ Laporan Pengawasan',
+                content,
+                size: 'large',
+                saveText: 'Kirim Laporan',
+                onOpen: () => {
+                    const fotoInput = document.getElementById('fotoWasdal');
+                    const fotoPreview = document.getElementById('fotoWasdalPreview');
+
+                    fotoInput.addEventListener('change', async (e) => {
+                        const files = Array.from(e.target.files);
+
+                        if (files.length + uploadedFotos.length > 5) {
+                            Toast.show('Maksimal 5 foto', 'error');
+                            fotoInput.value = '';
+                            return;
+                        }
+
+                        for (const file of files) {
+                            if (file.size > 5 * 1024 * 1024) {
+                                Toast.show(`File ${file.name} terlalu besar (maks. 5MB)`, 'error');
+                                continue;
+                            }
+
+                            const base64 = await fileToBase64(file);
+                            const fileData = {
+                                name: file.name,
+                                type: file.type,
+                                size: file.size,
+                                data: base64,
+                                uploadedAt: new Date().toISOString()
+                            };
+                            uploadedFotos.push(fileData);
+
+                            const previewItem = document.createElement('div');
+                            previewItem.style.cssText = 'position: relative; width: 80px; height: 80px; border-radius: var(--radius-sm); overflow: hidden;';
+                            previewItem.innerHTML = `
+                                <img src="${base64}" style="width: 100%; height: 100%; object-fit: cover;">
+                                <button type="button" onclick="this.parentElement.remove()" style="position: absolute; top: 2px; right: 2px; background: var(--danger); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 12px;">✕</button>
+                            `;
+                            fotoPreview.appendChild(previewItem);
+                        }
+
+                        fotoInput.value = '';
+                    });
+                },
+                onSave: (data) => {
+                    const progressValue = document.getElementById('selectProgressReport').value;
+
+                    if (!progressValue) {
+                        Toast.show('Pilih progress pekerjaan', 'error');
+                        return false;
+                    }
+
+                    if (uploadedFotos.length === 0) {
+                        Toast.show('Upload minimal 1 foto dokumentasi', 'error');
+                        return false;
+                    }
+
+                    const progressInt = parseInt(progressValue);
+                    const progressLabel = progressInt === 100 ? 'Selesai 100%' : `Progress ${progressInt}%`;
+
+                    // Update progress pada pekerjaan
+                    pekerjaan.progress = progressInt;
+
+                    // Tambahkan catatan dan dokumen ke tahapan terakhir
+                    const currentTahap = pekerjaan.tahapan[pekerjaan.tahapan.length - 1];
+                    currentTahap.dokumen = currentTahap.dokumen || [];
+                    currentTahap.dokumen.push(...uploadedFotos);
+
+                    if (data.catatanPengawasan) {
+                        currentTahap.catatan = (currentTahap.catatan ? currentTahap.catatan + '\n\n' : '') +
+                            `[Laporan ${progressLabel} - ${data.tanggalPengawasan}]\n${data.catatanPengawasan}`;
+                    }
+
+                    // Jika 100%, pekerjaan selesai
+                    if (progressInt === 100) {
+                        pekerjaan.status = 'selesai';
+                        currentTahap.tanggalSelesai = data.tanggalPengawasan;
+                    }
+
+                    Storage.update(Storage.KEYS.PEKERJAAN, id, pekerjaan);
+                    Toast.show(`Laporan ${progressLabel} berhasil dikirim!`, 'success');
+                    renderPekerjaanList();
+                    return true;
+                }
+            });
+        }
+
         // Helper function to convert file to base64
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
@@ -1208,9 +1357,9 @@
         function viewFile(fileData) {
             const newWindow = window.open();
             if (fileData.type.includes('pdf')) {
-                newWindow.document.write(`<iframe src="${fileData.data}" style="width:100%; height:100%; border:none;"></iframe>`);
+                newWindow.document.write(`< iframe src = "${fileData.data}" style = "width:100%; height:100%; border:none;" ></iframe > `);
             } else {
-                newWindow.document.write(`<img src="${fileData.data}" style="max-width:100%; height:auto;">`);
+                newWindow.document.write(`< img src = "${fileData.data}" style = "max-width:100%; height:auto;" >`);
             }
         }
 
