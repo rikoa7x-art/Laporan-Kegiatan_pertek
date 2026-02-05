@@ -1029,6 +1029,15 @@
             // Wait for Storage to finish initial pull and maintenance
             await Storage.isInitialized;
 
+            // Force pull RKAP data from Firebase to ensure we have latest
+            console.log('🔄 Pulling fresh RKAP data from Firebase...');
+            try {
+                await Storage.pull();
+                console.log('✅ RKAP data refreshed from Firebase');
+            } catch (e) {
+                console.log('⚠️ Could not pull from Firebase:', e.message);
+            }
+
             // Sync users to pekerja storage
             syncUsersToPekerja();
 
@@ -1036,6 +1045,7 @@
 
             // Register real-time sync callback
             Storage.onSyncCallback = () => {
+                console.log('🔔 Sync callback triggered, re-rendering dashboard...');
                 DashboardApp.render();
                 // Avoid too many toasts on background sync
             };
