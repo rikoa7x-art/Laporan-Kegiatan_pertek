@@ -57,6 +57,14 @@ const Modal = {
             size = 'default'
         } = options;
 
+        // Reset display state that might have been set by close()
+        this.overlay.style.display = 'flex';
+        this.overlay.style.opacity = '';
+        this.overlay.style.pointerEvents = '';
+        if (this.modal) {
+            this.modal.style.transform = '';
+        }
+
         this.title.textContent = title;
         this.body.innerHTML = content;
         this.saveBtn.textContent = saveText;
