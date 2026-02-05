@@ -17,6 +17,10 @@ const Storage = {
         RKAP: 'pertek_rkap'
     },
 
+    // Write lock to prevent Firebase listener from overwriting during local save
+    _writeLock: false,
+    _writeLockTimeout: null,
+
     /**
      * Get data from localStorage
      * @param {string} key - Storage key
@@ -55,7 +59,16 @@ const Storage = {
      */
     set(key, data, skipSync = false) {
         try {
+            // Engage write lock to prevent Firebase listener overwrite
+            this._writeLock = true;
+            if (this._writeLockTimeout) clearTimeout(this._writeLockTimeout);
+            this._writeLockTimeout = setTimeout(() => {
+                this._writeLock = false;
+            }, 2000); // Release lock after 2 seconds
+
             localStorage.setItem(key, JSON.stringify(data));
+            console.log(`💾 Saved ${key} to localStorage`);
+
             if (this.config.autoSync && !skipSync) {
                 this.push(key);
             }
@@ -226,6 +239,12 @@ const Storage = {
                 // Setup real-time listener if autoSync is enabled
                 if (this.config.autoSync && !this.managedListener) {
                     this.db.ref('pertek_data').on('value', (snapshot) => {
+                        // Skip if write lock is engaged (local save in progress)
+                        if (this._writeLock) {
+                            console.log('⏸️ Firebase update skipped: write lock active');
+                            return;
+                        }
+
                         const data = snapshot.val();
                         if (data) {
                             Object.keys(data).forEach(key => {
