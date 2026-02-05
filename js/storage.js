@@ -307,16 +307,19 @@ const Storage = {
 
         try {
             if (specificKey) {
-                // Push only one specific key
-                await this.db.ref(`pertek_data/${specificKey}`).set(this.get(specificKey));
+                // Push only one specific key - get raw data from localStorage
+                const rawData = localStorage.getItem(specificKey);
+                const data = rawData ? JSON.parse(rawData) : null;
+                await this.db.ref(`pertek_data/${specificKey}`).set(data);
                 return { success: true, message: `Key ${specificKey} pushed to cloud` };
             } else {
-                // Push everything
+                // Push everything - get raw data from localStorage
                 const keys = Object.values(this.KEYS);
                 const uploadData = {};
 
                 for (const key of keys) {
-                    uploadData[key] = this.get(key);
+                    const rawData = localStorage.getItem(key);
+                    uploadData[key] = rawData ? JSON.parse(rawData) : null;
                 }
 
                 await this.db.ref('pertek_data').set(uploadData);
