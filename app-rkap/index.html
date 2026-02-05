@@ -110,6 +110,11 @@
             </div>
             <div class="flex items-center gap-4">
                 <div id="lastSyncTime" class="text-[11px] text-slate-500 font-mono">Synced: Just now</div>
+                <button onclick="RkapApp.saveAndSync()"
+                    class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-5 py-2.5 rounded-xl transition-all font-medium">
+                    <i data-lucide="save" class="w-4 h-4"></i>
+                    <span>Simpan</span>
+                </button>
                 <button onclick="SyncUI.showSettings()"
                     class="flex items-center gap-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-5 py-2.5 rounded-xl transition-all font-medium">
                     <i data-lucide="cloud" class="w-4 h-4"></i>

@@ -247,6 +247,33 @@ const RkapApp = {
         console.log('💾 Data saved to Storage');
     },
 
+    // Save and sync to cloud explicitly
+    async saveAndSync() {
+        Toast.show('Menyimpan data...', 'info');
+
+        // Save locally first
+        this.saveData();
+
+        // Force push to cloud
+        try {
+            const result = await Storage.push(Storage.KEYS.RKAP);
+            if (result && result.success !== false) {
+                const now = new Date();
+                const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                const syncTimeEl = document.getElementById('lastSyncTime');
+                if (syncTimeEl) {
+                    syncTimeEl.textContent = `Synced: ${timeStr}`;
+                }
+                Toast.show('✅ Data berhasil disimpan & disinkronkan!', 'success');
+            } else {
+                Toast.show('Data disimpan lokal. Cloud sync tidak aktif.', 'info');
+            }
+        } catch (error) {
+            console.error('Sync error:', error);
+            Toast.show('Data disimpan lokal. Gagal sync ke cloud.', 'warning');
+        }
+    },
+
     render() {
         const syncIndicator = document.getElementById('syncStatusIndicator');
         if (syncIndicator) {
