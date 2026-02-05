@@ -863,6 +863,16 @@
 
                         console.log('Saving Pengawasan:', pengawasan);
                         Storage.add(Storage.KEYS.PEKERJAAN, pengawasan);
+
+                        // Update progress pada pekerjaan asli yang diawasi
+                        targetPekerjaan.progress = progressInt;
+                        if (progressInt === 100) {
+                            // Jika 100%, pekerjaan asli juga selesai
+                            targetPekerjaan.status = 'selesai';
+                            targetPekerjaan.tahapan[targetPekerjaan.tahapan.length - 1].tanggalSelesai = data.tanggalSurvey;
+                        }
+                        Storage.update(Storage.KEYS.PEKERJAAN, pekerjaanId, targetPekerjaan);
+
                         Toast.show(`Pengawasan ${progressLabel} berhasil ditambahkan!`, 'success');
                         renderPekerjaanList();
                         return true;

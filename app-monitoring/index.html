@@ -697,8 +697,13 @@
             },
 
             calculateProgress(item) {
-                if (item.kategori === 'pengawasan' && item.progress !== undefined) {
+                // Jika ada progress yang sudah di-set (dari laporan pengawasan)
+                if (item.progress !== undefined) {
                     return item.progress;
+                }
+                // Jika status wasdal tapi belum ada laporan, progress mulai dari 0%
+                if (item.status === 'wasdal') {
+                    return 0;
                 }
                 const status = item.status;
                 const progressMap = {
@@ -707,7 +712,6 @@
                     estimasi: 50,
                     review_asman: 70,
                     approval: 85,
-                    wasdal: 95,
                     selesai: 100
                 };
                 return progressMap[status] || 0;
