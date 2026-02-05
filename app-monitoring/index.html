@@ -330,6 +330,17 @@
                 </div>
             </div>
 
+            <!-- Rencana Minggu Ini dari RKAP -->
+            <div class="pekerjaan-section" style="margin-bottom: var(--spacing-lg);">
+                <div class="section-header">
+                    <h3>📅 Rencana Minggu Ini (RKAP)</h3>
+                    <span id="rkap-week-label" style="font-size: 0.75rem; color: var(--text-muted);"></span>
+                </div>
+                <div class="section-body" id="rkap-weekly-list">
+                    <!-- Will be rendered by JS -->
+                </div>
+            </div>
+
             <!-- All Pekerjaan Table -->
             <div class="pekerjaan-section">
                 <div class="section-header">
@@ -474,6 +485,7 @@
             render() {
                 this.renderWorkflowOverview();
                 this.renderSummaryStats();
+                this.renderRKAPWeeklyPlans();
                 this.renderTable();
                 this.renderCategoryLists();
             },
@@ -693,6 +705,110 @@
                         </div>
                     `;
                 }).join('');
+            },
+
+            // Render Rencana Mingguan dari RKAP
+            renderRKAPWeeklyPlans() {
+                const container = document.getElementById('rkap-weekly-list');
+                const weekLabel = document.getElementById('rkap-week-label');
+                if (!container) return;
+
+                // Get RKAP data from storage
+                const rkapData = Storage.get(Storage.KEYS.RKAP, true);
+
+                if (!rkapData || !rkapData.weeklyPlans) {
+                    container.innerHTML = `
+                        <div style="padding: var(--spacing-lg); text-align: center; color: var(--text-muted);">
+                            <p>Belum ada rencana mingguan dari RKAP.</p>
+                            <a href="../app-rkap/index.html#weekly" style="color: var(--primary);">Buat Rencana Mingguan di RKAP →</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Get current week number and month
+                const now = new Date();
+                const months = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOPEMBER', 'DESEMBER'];
+                const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+                const currentMonth = months[now.getMonth()];
+                const year = now.getFullYear();
+                const monthKey = `${currentMonth}_${year}`;
+
+                // Determine current week (W1, W2, W3, W4)
+                const dayOfMonth = now.getDate();
+                let currentWeek = 'W1';
+                if (dayOfMonth > 21) currentWeek = 'W4';
+                else if (dayOfMonth > 14) currentWeek = 'W3';
+                else if (dayOfMonth > 7) currentWeek = 'W2';
+
+                if (weekLabel) {
+                    weekLabel.textContent = `${monthNames[now.getMonth()]} ${year} - Minggu ${currentWeek.replace('W', '')}`;
+                }
+
+                const weeklyPlans = rkapData.weeklyPlans[monthKey];
+
+                if (!weeklyPlans || Object.keys(weeklyPlans).length === 0) {
+                    container.innerHTML = `
+                        <div style="padding: var(--spacing-lg); text-align: center; color: var(--text-muted);">
+                            <p>Tidak ada rencana untuk ${monthNames[now.getMonth()]} ${year}.</p>
+                            <a href="../app-rkap/index.html#weekly" style="color: var(--primary);">Buat Rencana Mingguan di RKAP →</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Collect all programs for the current week
+                const items = [];
+                Object.entries(weeklyPlans).forEach(([programName, weeks]) => {
+                    const weekData = weeks[currentWeek];
+                    if (weekData && weekData.survey && weekData.survey.length > 0) {
+                        items.push({
+                            programName,
+                            surveyDate: weekData.surveyDate || '-',
+                            personnel: weekData.survey || [],
+                            tasks: weekData.tasks || {}
+                        });
+                    }
+                });
+
+                if (items.length === 0) {
+                    container.innerHTML = `
+                        <div style="padding: var(--spacing-lg); text-align: center; color: var(--text-muted);">
+                            <p>Tidak ada rencana untuk minggu ini (${currentWeek.replace('W', 'Minggu ')}).</p>
+                            <a href="../app-rkap/index.html#weekly" style="color: var(--primary);">Buat Rencana Mingguan di RKAP →</a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Sort by survey date
+                items.sort((a, b) => {
+                    if (!a.surveyDate || a.surveyDate === '-') return 1;
+                    if (!b.surveyDate || b.surveyDate === '-') return -1;
+                    return new Date(a.surveyDate) - new Date(b.surveyDate);
+                });
+
+                container.innerHTML = `
+                    <div style="display: grid; gap: var(--spacing-sm);">
+                        ${items.map(item => `
+                            <div style="padding: var(--spacing-md); border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: var(--spacing-xs);">
+                                    <strong style="font-size: 0.875rem; color: var(--text-primary);">📋 ${Utils.escapeHtml(item.programName)}</strong>
+                                    ${item.surveyDate && item.surveyDate !== '-' ?
+                        `<span style="font-size: 0.75rem; color: var(--primary); background: var(--primary-light); padding: 2px 8px; border-radius: 4px;">📅 ${Utils.formatDate(item.surveyDate)}</span>` :
+                        '<span style="font-size: 0.75rem; color: var(--text-muted);">📅 Belum dijadwalkan</span>'
+                    }
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">
+                                    👥 ${item.personnel.length > 0 ? item.personnel.join(', ') : 'Belum ada personil'}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="padding: var(--spacing-sm); text-align: center; border-top: 1px solid var(--border-color); margin-top: var(--spacing-sm);">
+                        <a href="../app-rkap/index.html#weekly" style="font-size: 0.75rem; color: var(--primary);">Lihat Semua Rencana di RKAP →</a>
+                    </div>
+                `;
             },
 
             getPelaksanaNames(pelaksanaIds, pekerja) {
