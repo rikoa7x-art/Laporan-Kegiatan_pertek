@@ -297,10 +297,6 @@
                 📊 Dashboard Monitoring Pekerjaan
             </h1>
             <div class="header-controls">
-                <button onclick="DashboardApp.hardReset()" class="btn btn-secondary"
-                    style="border-color: #ef4444; color: #ef4444; margin-right: 4px;">
-                    ⚠️ Reset
-                </button>
                 <button onclick="DashboardApp.refreshData()" class="btn btn-secondary"
                     style="display: flex; align-items: center; gap: var(--spacing-sm);">
                     🔄 Sinkronkan Data
@@ -486,21 +482,7 @@
                 }
             },
 
-            async hardReset() {
-                if (confirm('KONFIRMASI RESET:\n\nApakah Anda yakin ingin menghapus semua data lokal di browser ini dan menarik ulang dari cloud?\n\nLakukan ini jika data tidak sinkron atau ada masalah tampilan.')) {
-                    Toast.show('Membersihkan data...', 'info');
-                    Storage.clearAll();
 
-                    // Clear debug info
-                    console.clear();
-                    console.log('🧹 Local storage wiped.');
-
-                    // Reload to force fresh pull
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 500);
-                }
-            },
 
 
             bindEvents() {
@@ -1072,25 +1054,7 @@
             };
         });
     </script>
-    <div id="debug-footer"
-        style="position: fixed; bottom: 0; left: 0; padding: 4px 8px; background: rgba(0,0,0,0.9); color: #00ff00; font-family: monospace; font-size: 10px; z-index: 9999; pointer-events: none; border-top-right-radius: 4px;">
-        Init...
-    </div>
 
-    <script>
-        // Debug Info logic
-        document.addEventListener('DOMContentLoaded', () => {
-            const debugEl = document.getElementById('debug-footer');
-            if (debugEl) {
-                const dbUrl = localStorage.getItem('pertek_firebase_databaseURL') || 'Not Set';
-                const projectId = localStorage.getItem('pertek_firebase_projectId') || 'Not Set';
-                // Show only domain part of DB for brevity/safety
-                const shortDb = dbUrl.replace('https://', '').replace('.firebaseio.com', '');
-
-                debugEl.innerHTML = `DB: ${shortDb} | PROJ: ${projectId} | v1.2`;
-            }
-        });
-    </script>
 </body>
 
 </html>
