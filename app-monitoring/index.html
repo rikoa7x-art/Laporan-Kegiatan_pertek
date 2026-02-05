@@ -445,6 +445,14 @@
 
                 // Auto refresh every 60 seconds
                 setInterval(() => this.render(), 60000);
+
+                // Listen for localStorage changes from other tabs
+                window.addEventListener('storage', (e) => {
+                    if (e.key && e.key.includes('pertek_')) {
+                        console.log('Data changed in another tab, refreshing...');
+                        this.render();
+                    }
+                });
             },
 
             async refreshData() {
