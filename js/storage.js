@@ -207,6 +207,9 @@ const Storage = {
      * Initialize Firebase client
      */
     initCloud() {
+        // Auto-initialize default config if not set
+        this.initDefaultConfig();
+
         if (this.config.apiKey && this.config.databaseURL && window.firebase) {
             try {
                 // Only initialize if not already initialized
