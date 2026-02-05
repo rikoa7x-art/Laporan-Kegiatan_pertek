@@ -249,18 +249,11 @@ const Storage = {
                         if (data) {
                             Object.keys(data).forEach(key => {
                                 const cloudData = data[key];
-                                // Skip if cloud data is null/empty - don't overwrite local data
-                                if (cloudData === null || cloudData === undefined) {
-                                    console.log(`⏭️ Skipping ${key}: cloud data is empty, keeping local`);
-                                    return;
-                                }
-                                // For object-based data (like RKAP), only update if cloud has meaningful data
-                                if (typeof cloudData === 'object' && !Array.isArray(cloudData)) {
-                                    if (Object.keys(cloudData).length === 0) {
-                                        console.log(`⏭️ Skipping ${key}: cloud object is empty`);
-                                        return;
-                                    }
-                                }
+
+                                // FORCE UPDATE: Cloud is source of truth
+                                // Even if cloudData is null/empty, we should respect it
+                                // This fixes issue where deleted items reappear because local data was preserved
+
                                 // Use skipSync=true to avoid recursive push()
                                 this.set(key, cloudData, true);
                             });
