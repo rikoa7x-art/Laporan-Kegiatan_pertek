@@ -1367,7 +1367,13 @@
         function checkSavedUser() {
             const savedId = localStorage.getItem('pertek_user');
             if (savedId) {
-                selectUser(savedId);
+                const user = users.find(u => u.id === savedId);
+                if (user) {
+                    currentUser = user; // Set currentUser directly
+                    loginSuccess();     // Call loginSuccess to show the main content
+                } else {
+                    localStorage.removeItem('pertek_user'); // ID not found, clear storage
+                }
             }
         }
 
