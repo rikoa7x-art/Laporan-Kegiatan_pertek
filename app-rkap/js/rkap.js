@@ -19,7 +19,9 @@ const RkapApp = {
             manager: ["Dadi Riswadi"],
             asman: ["M. Sulaeman", "Riko Komara"],
             staff: ["Dian Suhendrik", "Yunia", "Anditya", "Fahry", "Aldy"]
-        }
+        },
+        viewMode: 'list', // 'list' or 'table'
+        displayLimit: 50
     },
 
     // Helper: Add business days (skip Saturday & Sunday)
@@ -221,6 +223,11 @@ const RkapApp = {
                 });
                 console.log(`📋 Merged ${this.state.manualPrograms.length} manual programs into master data`);
             }
+
+            // Restore viewMode from saved state if exists (it might be in ...savedData, but ensure defaults)
+            if (!this.state.viewMode) this.state.viewMode = 'list';
+            this.state.displayLimit = 50; // Reset limit on reload
+
         } else {
             console.log('ℹ️ No existing RKAP data found in Storage');
         }
@@ -375,6 +382,21 @@ const RkapApp = {
                         </div>
                         
                         <div class="flex items-center gap-2">
+                            <!-- View Toggle -->
+                            <div class="bg-slate-800/50 p-1 rounded-xl border border-slate-700/50 flex items-center">
+                                <button onclick="RkapApp.setViewMode('list')" 
+                                    class="p-2 rounded-lg transition-all ${this.state.viewMode === 'list' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}"
+                                    title="Tampilan Kartu">
+                                    <i data-lucide="layout-list" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="RkapApp.setViewMode('table')" 
+                                    class="p-2 rounded-lg transition-all ${this.state.viewMode === 'table' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}"
+                                    title="Tampilan Tabel (Padat)">
+                                    <i data-lucide="table-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="w-px h-8 bg-slate-700/50 mx-1"></div>
+
                             <button onclick="RkapApp.openAddProgramModal()" 
                                 class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
                                 <i data-lucide="plus-circle" class="w-4 h-4"></i>
@@ -425,10 +447,13 @@ const RkapApp = {
 
     handleFilterUpdate(type, value) {
         this.state.filters[type] = value;
+        this.state.displayLimit = 50; // Reset limit on filter change
         const listContainer = document.getElementById('dashboard-content');
         if (listContainer) {
             listContainer.innerHTML = this.renderProgramList();
             lucide.createIcons();
+            // Scroll to top of list
+            listContainer.scrollTop = 0;
         }
 
         // Partial update for stats without re-rendering everything (preserves input focus)
@@ -436,6 +461,22 @@ const RkapApp = {
 
         // Save filter state
         this.saveData();
+    },
+
+    setViewMode(mode) {
+        this.state.viewMode = mode;
+        this.renderDashboard();
+        this.saveData();
+    },
+
+    loadMore() {
+        this.state.displayLimit += 50;
+        const listContainer = document.getElementById('dashboard-content');
+        if (listContainer) {
+            // Re-render list with new limit
+            listContainer.innerHTML = this.renderProgramList();
+            lucide.createIcons();
+        }
     },
 
     getFilteredData() {
@@ -502,47 +543,121 @@ const RkapApp = {
             `;
         }
 
+        const limit = this.state.displayLimit || 50;
+        const itemsToShow = filtered.slice(0, limit);
+        const hasMore = filtered.length > limit;
+
+        let listHtml = '';
+
+        if (this.state.viewMode === 'table') {
+            listHtml = this.renderTableView(itemsToShow);
+        } else {
+            listHtml = `
+            <div class="grid grid-cols-1 gap-3">
+                ${itemsToShow.map((prog, idx) => {
+                const isSelected = this.state.selectedItems.has(prog.description);
+                return `
+                        <div class="program-item flex items-center justify-between p-4 ${isSelected ? 'selected' : ''} group animate-fade-in" style="animation-delay: ${idx * 0.01}s">
+                            <div class="flex items-center gap-5 flex-1 min-w-0">
+                                <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center font-mono font-bold text-xs ${isSelected ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'} border border-white/5 shadow-lg">
+                                    ${prog.code ? prog.code.split('.').pop() : '#'}
+                                </div>
+                                <div class="min-w-0 pr-4">
+                                    <div class="flex items-center gap-2">
+                                        <div class="font-semibold truncate ${isSelected ? 'text-emerald-400' : 'text-slate-200 group-hover:text-white'} transition-colors">${prog.description}</div>
+                                        ${prog.isManual ? `<span class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">TAMBAHAN</span>` : ''}
+                                    </div>
+                                    <div class="text-xs text-slate-500 flex items-center gap-3 mt-2">
+                                        <span class="flex items-center gap-1 font-mono uppercase tracking-widest"><i data-lucide="hash" class="w-3 h-3"></i> ${prog.code || '-'}</span>
+                                        ${prog.branch ? `<span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> ${prog.branch}</span>` : ''}
+                                        <span class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800 border border-white/5"><i data-lucide="tag" class="w-3 h-3"></i> ${prog.category || 'Umum'}</span>
+                                        ${prog.isManual ? '' : `<span class="flex items-center gap-1 text-blue-400 font-semibold"><i data-lucide="banknote" class="w-3 h-3"></i> Rp ${prog.pagu.toLocaleString('id-ID')}</span>`}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                ${prog.isManual ? `
+                                    <button onclick="event.stopPropagation(); RkapApp.deleteManualProgram('${prog.description.replace(/'/g, "\\'")}')" 
+                                        class="flex-shrink-0 p-2 rounded-lg text-rose-400 hover:bg-rose-500/20 transition-all" title="Hapus Program">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                ` : ''}
+                                <button onclick="RkapApp.toggleProgram('${prog.description.replace(/'/g, "\\'")}')" 
+                                    class="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg ${isSelected ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20' : 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/20'}">
+                                    <i data-lucide="${isSelected ? 'x' : 'plus'}" class="w-4 h-4"></i>
+                                    <span>${isSelected ? 'Batal' : 'Pilih'}</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+            }).join('')}
+            </div>`;
+        }
+
+        if (hasMore) {
+            listHtml += `
+                <div class="mt-6 text-center">
+                    <button onclick="RkapApp.loadMore()" 
+                        class="px-6 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-slate-300 font-medium transition-all shadow-lg">
+                        Load More (${(filtered.length - limit).toLocaleString()} items left)
+                    </button>
+                    <div class="text-xs text-slate-500 mt-2">Showing ${limit.toLocaleString()} of ${filtered.length.toLocaleString()} items</div>
+                </div>
+            `;
+        } else {
+            listHtml += `<div class="text-center py-6 text-slate-500 text-sm border-t border-slate-800 mt-4">--- End of Data ---</div>`;
+        }
+
+        return listHtml;
+    },
+
+    renderTableView(items) {
         return `
-        <div class="grid grid-cols-1 gap-3">
-            ${filtered.slice(0, 100).map((prog, idx) => {
+        <div class="overflow-x-auto rounded-xl border border-slate-700/50">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-800 text-xs uppercase tracking-wider text-slate-400 font-bold sticky top-0 z-10">
+                    <tr>
+                        <th class="p-3 border-b border-slate-700">Kode</th>
+                        <th class="p-3 border-b border-slate-700">Program Kerja</th>
+                        <th class="p-3 border-b border-slate-700">Cabang</th>
+                        <th class="p-3 border-b border-slate-700 text-right">Pagu</th>
+                        <th class="p-3 border-b border-slate-700 text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800 bg-slate-900/40 text-sm text-slate-300">
+                    ${items.map((prog, idx) => {
             const isSelected = this.state.selectedItems.has(prog.description);
             return `
-                    <div class="program-item flex items-center justify-between p-4 ${isSelected ? 'selected' : ''} group animate-fade-in" style="animation-delay: ${idx * 0.01}s">
-                        <div class="flex items-center gap-5 flex-1 min-w-0">
-                            <div class="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center font-mono font-bold text-xs ${isSelected ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-400'} border border-white/5 shadow-lg">
-                                ${prog.code ? prog.code.split('.').pop() : '#'}
-                            </div>
-                            <div class="min-w-0 pr-4">
-                                <div class="flex items-center gap-2">
-                                    <div class="font-semibold truncate ${isSelected ? 'text-emerald-400' : 'text-slate-200 group-hover:text-white'} transition-colors">${prog.description}</div>
-                                    ${prog.isManual ? `<span class="px-2 py-0.5 text-[9px] font-bold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">TAMBAHAN</span>` : ''}
-                                </div>
-                                <div class="text-xs text-slate-500 flex items-center gap-3 mt-2">
-                                    <span class="flex items-center gap-1 font-mono uppercase tracking-widest"><i data-lucide="hash" class="w-3 h-3"></i> ${prog.code || '-'}</span>
-                                    ${prog.branch ? `<span class="flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> ${prog.branch}</span>` : ''}
-                                    <span class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-800 border border-white/5"><i data-lucide="tag" class="w-3 h-3"></i> ${prog.category || 'Umum'}</span>
-                                    ${prog.isManual ? '' : `<span class="flex items-center gap-1 text-blue-400 font-semibold"><i data-lucide="banknote" class="w-3 h-3"></i> Rp ${prog.pagu.toLocaleString('id-ID')}</span>`}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            ${prog.isManual ? `
-                                <button onclick="event.stopPropagation(); RkapApp.deleteManualProgram('${prog.description.replace(/'/g, "\\'")}')" 
-                                    class="flex-shrink-0 p-2 rounded-lg text-rose-400 hover:bg-rose-500/20 transition-all" title="Hapus Program">
-                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        <tr class="hover:bg-indigo-500/5 transition-colors ${isSelected ? 'bg-indigo-500/10' : ''}">
+                            <td class="p-3 font-mono text-xs text-slate-500">${prog.code || '-'}</td>
+                            <td class="p-3">
+                                <div class="font-medium ${isSelected ? 'text-emerald-400' : 'text-slate-200'}">${prog.description}</div>
+                                <div class="text-[10px] text-slate-500 mt-0.5">${prog.category || 'Umum'} ${prog.isManual ? '<span class="text-amber-500 ml-1">(Manual)</span>' : ''}</div>
+                            </td>
+                            <td class="p-3 text-xs whitespace-nowrap">${prog.branch || '-'}</td>
+                            <td class="p-3 text-right font-mono text-xs ${prog.pagu > 0 ? 'text-blue-400' : 'text-slate-600'}">
+                                ${prog.pagu ? prog.pagu.toLocaleString('id-ID') : '-'}
+                            </td>
+                            <td class="p-3 text-center w-24">
+                                <button onclick="RkapApp.toggleProgram('${prog.description.replace(/'/g, "\\'")}')" 
+                                    class="p-1.5 rounded-lg transition-all ${isSelected ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30' : 'bg-slate-700 text-slate-400 hover:bg-indigo-500 hover:text-white'}"
+                                    title="${isSelected ? 'Batalkan Pilihan' : 'Pilih Program'}">
+                                    <i data-lucide="${isSelected ? 'minus' : 'plus'}" class="w-4 h-4"></i>
                                 </button>
-                            ` : ''}
-                            <button onclick="RkapApp.toggleProgram('${prog.description.replace(/'/g, "\\'")}')" 
-                                class="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg ${isSelected ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20' : 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/20'}">
-                                <i data-lucide="${isSelected ? 'x' : 'plus'}" class="w-4 h-4"></i>
-                                <span>${isSelected ? 'Batal' : 'Pilih'}</span>
-                            </button>
-                        </div>
-                    </div>
-                `;
+                                ${prog.isManual ? `
+                                    <button onclick="RkapApp.deleteManualProgram('${prog.description.replace(/'/g, "\\'")}')" 
+                                        class="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/20 transition-all ml-1" title="Hapus">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                ` : ''}
+                            </td>
+                        </tr>
+                        `;
         }).join('')}
-             ${filtered.length > 100 ? `<div class="text-center py-6 text-slate-500 text-sm border-t border-slate-800 mt-4">Menampilkan 100 dari ${filtered.length} hasil...</div>` : ''}
-        </div>`;
+                </tbody>
+            </table>
+        </div>
+        `;
     },
 
     toggleProgram(progId) {
