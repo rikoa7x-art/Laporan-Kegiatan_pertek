@@ -1160,6 +1160,9 @@ const RkapApp = {
     openWeeklyModal(monthKey, progDesc, weekKey) {
         const weekData = this.state.weeklyPlans?.[monthKey]?.[progDesc]?.[weekKey] || {};
 
+        // Encode progDesc for safe passing in onclick handlers
+        const encodedDesc = btoa(encodeURIComponent(progDesc));
+
         // Build personnel options
         const allPersonnel = [
             ...this.state.personnel.manager,
@@ -1224,14 +1227,14 @@ const RkapApp = {
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-700/50">
-                    <button onclick="RkapApp.clearWeeklySchedule('${monthKey}', '${progDesc}', '${weekKey}')" 
+                    <button data-encoded-desc="${encodedDesc}" onclick="RkapApp.clearWeeklySchedule('${monthKey}', decodeURIComponent(atob(this.dataset.encodedDesc)), '${weekKey}')" 
                         class="px-4 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium transition-all border border-red-500/30">
                         <i data-lucide="trash-2" class="w-4 h-4 inline"></i> Hapus
                     </button>
                     <button onclick="Modal.close()" class="flex-1 px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-medium transition-all">
                         Batal
                     </button>
-                    <button onclick="RkapApp.saveWeeklyModal('${monthKey}', '${progDesc}', '${weekKey}')" 
+                    <button data-encoded-desc="${encodedDesc}" onclick="RkapApp.saveWeeklyModal('${monthKey}', decodeURIComponent(atob(this.dataset.encodedDesc)), '${weekKey}')" 
                         class="flex-1 px-4 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition-all shadow-lg shadow-indigo-500/20">
                         Simpan
                     </button>
