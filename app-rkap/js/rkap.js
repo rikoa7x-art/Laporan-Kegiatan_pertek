@@ -725,8 +725,8 @@ const RkapApp = {
 
     toggleProgram(progId) {
         // Save scroll position before re-render
-        const programListContainer = document.querySelector('#program-list-container');
-        const scrollPos = programListContainer ? programListContainer.scrollTop : 0;
+        const dashboardContent = document.querySelector('#dashboard-content');
+        const scrollPos = dashboardContent ? dashboardContent.scrollTop : 0;
 
         if (this.state.selectedItems.has(progId)) {
             this.state.selectedItems.delete(progId);
@@ -744,7 +744,7 @@ const RkapApp = {
 
             // Restore scroll position after re-render
             requestAnimationFrame(() => {
-                const container = document.querySelector('#program-list-container');
+                const container = document.querySelector('#dashboard-content');
                 if (container) {
                     container.scrollTop = scrollPos;
                 }
