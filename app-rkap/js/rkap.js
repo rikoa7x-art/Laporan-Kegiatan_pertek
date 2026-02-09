@@ -52,6 +52,12 @@ const RkapApp = {
 
         this.setupNavigation();
 
+        // Setup Firebase sync callback for real-time updates
+        Storage.onSyncCallback = () => {
+            console.log('🔄 Data synced from Firebase, reloading...');
+            this.loadData();
+        };
+
         // Load master data
         this.loadMasterData();
 
