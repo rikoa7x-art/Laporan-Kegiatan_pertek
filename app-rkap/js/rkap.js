@@ -1106,7 +1106,7 @@ const RkapApp = {
                             const escapedDesc = prog.description
                                 .replace(/\\/g, '\\\\')
                                 .replace(/'/g, "\\'")
-                                .replace(/"/g, '&quot;')
+                                .replace(/"/g, '\\"')
                                 .replace(/\n/g, ' ')
                                 .replace(/\r/g, '');
                             return `
