@@ -39,6 +39,35 @@ const RkapApp = {
         return result;
     },
 
+    // Helper: Sanitize program description for use as Firebase key
+    // Firebase doesn't allow . # $ / [ ] " in keys
+    sanitizeFirebaseKey(str) {
+        if (!str) return '';
+        return str
+            .replace(/\./g, '·')  // Replace . with middle dot
+            .replace(/#/g, '№')   // Replace # with numero sign
+            .replace(/\$/g, '＄')  // Replace $ with fullwidth dollar
+            .replace(/\//g, '⁄')   // Replace / with fraction slash
+            .replace(/\[/g, '⟦')   // Replace [ with mathematical left bracket
+            .replace(/\]/g, '⟧')   // Replace ] with mathematical right bracket
+            .replace(/"/g, '″')   // Replace " with double prime (looks similar)
+            .trim();
+    },
+
+    // Helper: Reverse sanitization to get original description
+    unsanitizeFirebaseKey(str) {
+        if (!str) return '';
+        return str
+            .replace(/·/g, '.')
+            .replace(/№/g, '#')
+            .replace(/＄/g, '$')
+            .replace(/⁄/g, '/')
+            .replace(/⟦/g, '[')
+            .replace(/⟧/g, ']')
+            .replace(/″/g, '"')
+            .trim();
+    },
+
     init() {
         console.log('🚀 Initializing RKAP App...');
 
@@ -1099,7 +1128,9 @@ const RkapApp = {
                                                         </div>
                                                     </td>
                                                     ${[1, 2, 3, 4].map(week => {
-                            const weekData = this.state.weeklyPlans[monthKey]?.[prog.description]?.[`W${week}`] || {};
+                            // Sanitize prog.description for Firebase key access
+                            const sanitizedProgDesc = this.sanitizeFirebaseKey(prog.description);
+                            const weekData = this.state.weeklyPlans[monthKey]?.[sanitizedProgDesc]?.[`W${week}`] || {};
                             const hasData = weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER;
                             const surveyDate = weekData.SURVEY_DATE ? new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-';
                             // Use base64 encoding to safely pass program description
@@ -1158,7 +1189,9 @@ const RkapApp = {
     },
 
     openWeeklyModal(monthKey, progDesc, weekKey) {
-        const weekData = this.state.weeklyPlans?.[monthKey]?.[progDesc]?.[weekKey] || {};
+        // Sanitize progDesc for Firebase key access
+        const sanitizedProgDesc = this.sanitizeFirebaseKey(progDesc);
+        const weekData = this.state.weeklyPlans?.[monthKey]?.[sanitizedProgDesc]?.[weekKey] || {};
 
         // Encode progDesc for safe passing in onclick handlers
         const encodedDesc = btoa(encodeURIComponent(progDesc));
@@ -1254,13 +1287,16 @@ const RkapApp = {
         const estimator = document.getElementById('modal-estimator').value;
         const monev = document.getElementById('modal-monev').value;
 
-        // Initialize structure
+        // Sanitize progDesc for Firebase (replace invalid characters)
+        const sanitizedProgDesc = this.sanitizeFirebaseKey(progDesc);
+
+        // Initialize structure with SANITIZED key
         if (!this.state.weeklyPlans) this.state.weeklyPlans = {};
         if (!this.state.weeklyPlans[monthKey]) this.state.weeklyPlans[monthKey] = {};
-        if (!this.state.weeklyPlans[monthKey][progDesc]) this.state.weeklyPlans[monthKey][progDesc] = {};
-        if (!this.state.weeklyPlans[monthKey][progDesc][weekKey]) this.state.weeklyPlans[monthKey][progDesc][weekKey] = {};
+        if (!this.state.weeklyPlans[monthKey][sanitizedProgDesc]) this.state.weeklyPlans[monthKey][sanitizedProgDesc] = {};
+        if (!this.state.weeklyPlans[monthKey][sanitizedProgDesc][weekKey]) this.state.weeklyPlans[monthKey][sanitizedProgDesc][weekKey] = {};
 
-        const weekData = this.state.weeklyPlans[monthKey][progDesc][weekKey];
+        const weekData = this.state.weeklyPlans[monthKey][sanitizedProgDesc][weekKey];
 
         // Save personnel
         weekData.SURVEYOR_1 = surveyor1;
@@ -1310,18 +1346,21 @@ const RkapApp = {
 
     // Clear/delete a weekly schedule
     clearWeeklySchedule(monthKey, progDesc, weekKey) {
-        if (!this.state.weeklyPlans?.[monthKey]?.[progDesc]?.[weekKey]) {
+        // Sanitize progDesc for Firebase key access
+        const sanitizedProgDesc = this.sanitizeFirebaseKey(progDesc);
+
+        if (!this.state.weeklyPlans?.[monthKey]?.[sanitizedProgDesc]?.[weekKey]) {
             Toast.show('Tidak ada jadwal untuk dihapus', 'warning');
             Modal.close();
             return;
         }
 
         // Delete the week data
-        delete this.state.weeklyPlans[monthKey][progDesc][weekKey];
+        delete this.state.weeklyPlans[monthKey][sanitizedProgDesc][weekKey];
 
         // Clean up empty objects
-        if (Object.keys(this.state.weeklyPlans[monthKey][progDesc]).length === 0) {
-            delete this.state.weeklyPlans[monthKey][progDesc];
+        if (Object.keys(this.state.weeklyPlans[monthKey][sanitizedProgDesc]).length === 0) {
+            delete this.state.weeklyPlans[monthKey][sanitizedProgDesc];
         }
         if (Object.keys(this.state.weeklyPlans[monthKey]).length === 0) {
             delete this.state.weeklyPlans[monthKey];
