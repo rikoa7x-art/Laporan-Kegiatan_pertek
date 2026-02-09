@@ -134,15 +134,21 @@ const RkapApp = {
 
             // 1. Try Global Variable PROGRAM_DATA (Best for local file:// protocol)
             if (window.PROGRAM_DATA) {
-                this.masterData = window.PROGRAM_DATA.map(row => ({
-                    id: row.id || Math.random().toString(36).substr(2, 9),
-                    code: row.code || '',
-                    description: row.description || '',
-                    branch: row.branch || 'KANTOR PUSAT',
-                    category: row.category || 'Umum',
-                    pagu: row.total || row.pagu || 0,
-                    monthly: row.monthly || {}
-                }));
+                this.masterData = window.PROGRAM_DATA
+                    .filter(row => {
+                        // Filter out "Total Investasi" entries (case insensitive)
+                        const desc = (row.description || '').toLowerCase();
+                        return !desc.includes('total investasi');
+                    })
+                    .map(row => ({
+                        id: row.id || Math.random().toString(36).substr(2, 9),
+                        code: row.code || '',
+                        description: row.description || '',
+                        branch: row.branch || 'KANTOR PUSAT',
+                        category: row.category || 'Umum',
+                        pagu: row.total || row.pagu || 0,
+                        monthly: row.monthly || {}
+                    }));
                 console.log(`📚 Loaded ${this.masterData.length} programs from program_data.js`);
                 this.render();
                 return;
@@ -153,15 +159,21 @@ const RkapApp = {
                 const jsonResponse = await fetch('program_data.json');
                 if (jsonResponse.ok) {
                     const rawData = await jsonResponse.json();
-                    this.masterData = rawData.map(row => ({
-                        id: row.id || Math.random().toString(36).substr(2, 9),
-                        code: row.code || '',
-                        description: row.description || '',
-                        branch: row.branch || 'KANTOR PUSAT',
-                        category: row.category || 'Umum',
-                        pagu: row.total || row.pagu || 0,
-                        monthly: row.monthly || {}
-                    }));
+                    this.masterData = rawData
+                        .filter(row => {
+                            // Filter out "Total Investasi" entries
+                            const desc = (row.description || '').toLowerCase();
+                            return !desc.includes('total investasi');
+                        })
+                        .map(row => ({
+                            id: row.id || Math.random().toString(36).substr(2, 9),
+                            code: row.code || '',
+                            description: row.description || '',
+                            branch: row.branch || 'KANTOR PUSAT',
+                            category: row.category || 'Umum',
+                            pagu: row.total || row.pagu || 0,
+                            monthly: row.monthly || {}
+                        }));
                     console.log(`📚 Loaded ${this.masterData.length} programs from program_data.json`);
                     this.render();
                     return;
@@ -188,14 +200,21 @@ const RkapApp = {
                 const workbook = XLSX.read(arrayBuffer);
                 const rawData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
-                this.masterData = rawData.map(row => ({
-                    id: row.id || row.ID || '',
-                    code: row.Kode || row.KODE || row.kode || row['No'] || '',
-                    description: row.Program || row.PROGRAM || row.Deskripsi || row['Nama Program'] || '',
-                    branch: row.Cabang || row.CABANG || '',
-                    category: row.Kategori || row.KATEGORI || 'Umum',
-                    pagu: row.Pagu || row.PAGU || row['Anggaran'] || 0
-                })).filter(item => item.description);
+                this.masterData = rawData
+                    .map(row => ({
+                        id: row.id || row.ID || '',
+                        code: row.Kode || row.KODE || row.kode || row['No'] || '',
+                        description: row.Program || row.PROGRAM || row.Deskripsi || row['Nama Program'] || '',
+                        branch: row.Cabang || row.CABANG || '',
+                        category: row.Kategori || row.KATEGORI || 'Umum',
+                        pagu: row.Pagu || row.PAGU || row['Anggaran'] || 0
+                    }))
+                    .filter(item => {
+                        // Filter out empty descriptions and "Total Investasi" entries
+                        if (!item.description) return false;
+                        const desc = item.description.toLowerCase();
+                        return !desc.includes('total investasi');
+                    });
 
                 console.log(`📚 Loaded ${this.masterData.length} programs from Excel`);
                 this.render();
