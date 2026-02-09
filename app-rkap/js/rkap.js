@@ -1102,16 +1102,11 @@ const RkapApp = {
                             const weekData = this.state.weeklyPlans[monthKey]?.[prog.description]?.[`W${week}`] || {};
                             const hasData = weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER;
                             const surveyDate = weekData.SURVEY_DATE ? new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-';
-                            // Secure escape for inline JS: quotes, double quotes, backslashes, and newlines
-                            const escapedDesc = prog.description
-                                .replace(/\\/g, '\\\\')
-                                .replace(/'/g, "\\'")
-                                .replace(/"/g, '\\"')
-                                .replace(/\n/g, ' ')
-                                .replace(/\r/g, '');
+                            // Use base64 encoding to safely pass program description
+                            const encodedDesc = btoa(encodeURIComponent(prog.description));
                             return `
                                                             <td class="p-2 border-r border-slate-700/50 bg-slate-900/30 align-top">
-                                                                <button onclick="RkapApp.openWeeklyModal('${monthKey}', '${escapedDesc}', 'W${week}')"
+                                                                <button data-prog-desc="${encodedDesc}" data-month="${monthKey}" data-week="W${week}" onclick="RkapApp.openWeeklyModal('${monthKey}', decodeURIComponent(atob(this.dataset.progDesc)), 'W${week}')"
                                                                     class="w-full p-2 rounded-lg border transition-all text-left ${hasData ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20' : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50'}">
                                                                     ${hasData ? `
                                                                         <div class="text-[10px] text-amber-400 font-bold mb-1">📅 ${surveyDate}</div>
