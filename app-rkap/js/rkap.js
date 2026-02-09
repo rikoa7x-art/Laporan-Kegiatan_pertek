@@ -1291,15 +1291,21 @@ const RkapApp = {
         this.saveData();
 
         // Push to cloud immediately so Dashboard Monitoring gets updated
-        Storage.push(Storage.KEYS.RKAP).then(() => {
-            console.log('✅ RKAP weekly data pushed to cloud');
+        Storage.push(Storage.KEYS.RKAP).then((result) => {
+            if (result && result.success) {
+                console.log('✅ RKAP weekly data pushed to cloud');
+                Toast.show('✅ Jadwal berhasil disimpan & disinkronkan ke cloud', 'success');
+            } else {
+                console.log('⚠️ Cloud sync failed:', result?.message || 'Unknown error');
+                Toast.show('💾 Jadwal disimpan lokal. Cloud sync tidak aktif.', 'warning');
+            }
         }).catch(err => {
-            console.log('⚠️ Cloud sync skipped:', err.message);
+            console.log('⚠️ Cloud sync error:', err.message);
+            Toast.show('💾 Jadwal disimpan lokal. Gagal sync ke cloud.', 'warning');
         });
 
         Modal.close();
         this.renderWeekly();
-        Toast.show('Jadwal berhasil disimpan & disinkronkan', 'success');
     },
 
     // Clear/delete a weekly schedule
