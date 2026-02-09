@@ -344,140 +344,117 @@ const RkapApp = {
         const totalSelected = this.state.selectedItems.size;
 
         container.innerHTML = `
-            <!-- Two Column Layout: Main Content + Sidebar -->
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 animate-fade-in">
-                
-                <!-- MAIN CONTENT: Database Program Kerja (LEFT/MAIN) -->
-                <div class="card-premium h-[calc(100vh-200px)] flex flex-col overflow-hidden">
-                    <div class="p-6 border-b border-slate-700/50 bg-white/5 space-y-4">
-                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                            <div>
-                                <h3 class="font-bold text-xl text-white">📋 Database Program Kerja</h3>
-                                <p id="items-count-label" class="text-sm text-slate-400 mt-1">Menampilkan ${totalFiltered.toLocaleString()} dari ${totalMaster.toLocaleString()} program</p>
-                            </div>
-                            
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <!-- View Toggle -->
-                                <div class="bg-slate-800/50 p-1 rounded-xl border border-slate-700/50 flex items-center">
-                                    <button onclick="RkapApp.setViewMode('list')" 
-                                        class="p-2 rounded-lg transition-all ${this.state.viewMode === 'list' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}"
-                                        title="Tampilan Kartu">
-                                        <i data-lucide="layout-list" class="w-4 h-4"></i>
-                                    </button>
-                                    <button onclick="RkapApp.setViewMode('table')" 
-                                        class="p-2 rounded-lg transition-all ${this.state.viewMode === 'table' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}"
-                                        title="Tampilan Tabel (Padat)">
-                                        <i data-lucide="table-2" class="w-4 h-4"></i>
-                                    </button>
-                                </div>
-                                <div class="w-px h-8 bg-slate-700/50 mx-1"></div>
-
-                                <button onclick="RkapApp.openAddProgramModal()" 
-                                    class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
-                                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                                    <span class="hidden md:inline">Tambah Program</span>
+            <!-- Full Width: Database Program Kerja -->
+            <div class="card-premium h-[calc(100vh-200px)] flex flex-col overflow-hidden animate-fade-in">
+                <div class="p-6 border-b border-slate-700/50 bg-white/5 space-y-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h3 class="font-bold text-xl text-white">📋 Database Program Kerja</h3>
+                            <p id="items-count-label" class="text-sm text-slate-400 mt-1">Menampilkan ${totalFiltered.toLocaleString()} dari ${totalMaster.toLocaleString()} program</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <!-- View Toggle -->
+                            <div class="bg-slate-800/50 p-1 rounded-xl border border-slate-700/50 flex items-center">
+                                <button onclick="RkapApp.setViewMode('list')" 
+                                    class="p-2 rounded-lg transition-all ${this.state.viewMode === 'list' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}"
+                                    title="Tampilan Kartu">
+                                    <i data-lucide="layout-list" class="w-4 h-4"></i>
                                 </button>
-                                 <div class="relative group">
-                                    <i data-lucide="map-pin" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
-                                    <select onchange="RkapApp.handleFilterUpdate('branch', this.value)" 
-                                        class="bg-slate-900/50 border border-slate-700/50 rounded-xl pl-9 pr-8 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 appearance-none min-w-[140px]">
-                                        <option value="">Semua Cabang</option>
-                                        ${branches.map(b => `<option value="${b}" ${this.state.filters.branch === b ? 'selected' : ''}>${b}</option>`).join('')}
-                                    </select>
-                                </div>
-
-                                 <div class="relative group">
-                                    <i data-lucide="calendar-days" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
-                                    <select onchange="RkapApp.handleFilterUpdate('month', this.value)" 
-                                        class="bg-slate-900/50 border border-slate-700/50 rounded-xl pl-9 pr-8 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 appearance-none min-w-[140px]">
-                                        <option value="">Semua Bulan</option>
-                                        ${months.map(m => `<option value="${m}" ${this.state.filters.month === m ? 'selected' : ''}>${m}</option>`).join('')}
-                                    </select>
-                                </div>
+                                <button onclick="RkapApp.setViewMode('table')" 
+                                    class="p-2 rounded-lg transition-all ${this.state.viewMode === 'table' ? 'bg-indigo-500 text-white shadow-lg' : 'text-slate-400 hover:text-white hover:bg-white/5'}"
+                                    title="Tampilan Tabel (Padat)">
+                                    <i data-lucide="table-2" class="w-4 h-4"></i>
+                                </button>
                             </div>
-                        </div>
+                            <div class="w-px h-8 bg-slate-700/50 mx-1"></div>
 
-                        <div class="relative group">
-                            <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-400 transition-colors"></i>
-                            <input type="text" placeholder="Cari kode program, deskripsi, atau kategori..." 
-                                class="w-full bg-slate-900/50 border border-slate-700/50 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all text-white placeholder:text-slate-600 shadow-inner"
-                                oninput="RkapApp.handleFilterUpdate('search', this.value)" value="${this.state.filters.search || ''}">
+                            <button onclick="RkapApp.openAddProgramModal()" 
+                                class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
+                                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                                <span class="hidden md:inline">Tambah Program</span>
+                            </button>
+                             <div class="relative group">
+                                <i data-lucide="map-pin" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <select onchange="RkapApp.handleFilterUpdate('branch', this.value)" 
+                                    class="bg-slate-900/50 border border-slate-700/50 rounded-xl pl-9 pr-8 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 appearance-none min-w-[140px]">
+                                    <option value="">Semua Cabang</option>
+                                    ${branches.map(b => `<option value="${b}" ${this.state.filters.branch === b ? 'selected' : ''}>${b}</option>`).join('')}
+                                </select>
+                            </div>
+
+                             <div class="relative group">
+                                <i data-lucide="calendar-days" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                                <select onchange="RkapApp.handleFilterUpdate('month', this.value)" 
+                                    class="bg-slate-900/50 border border-slate-700/50 rounded-xl pl-9 pr-8 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 appearance-none min-w-[140px]">
+                                    <option value="">Semua Bulan</option>
+                                    ${months.map(m => `<option value="${m}" ${this.state.filters.month === m ? 'selected' : ''}>${m}</option>`).join('')}
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div id="dashboard-content" class="p-6 overflow-y-auto custom-scrollbar flex-1 bg-slate-900/20">
-                        ${totalMaster === 0 ? `
-                            <div class="flex flex-col items-center justify-center py-20 text-slate-500">
-                                <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 animate-pulse">
-                                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
-                                </div>
-                                <p>Memuat database program...</p>
-                            </div>
-                        ` : this.renderProgramList()}
-                    </div>
-                </div>
-
-                <!-- SIDEBAR: Rekap Summary Cards (RIGHT) -->
-                <div class="space-y-4">
-                    <!-- Header -->
-                    <div class="card-premium p-4">
-                        <h3 class="text-sm font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                            <i data-lucide="bar-chart-3" class="w-4 h-4 text-indigo-400"></i>
-                            Rekap
-                        </h3>
-                    </div>
-
-                    <!-- Master Program Card -->
-                    <div class="card-premium p-5 overflow-hidden relative group">
-                        <div class="absolute -right-2 -top-2 w-16 h-16 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition-all"></div>
-                        <div class="flex items-start gap-3 mb-3">
-                            <div class="p-2.5 rounded-lg bg-indigo-500/10 text-indigo-400">
-                                <i data-lucide="database" class="w-5 h-5"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Master Program</h4>
-                                <div class="text-3xl font-bold tracking-tight text-white mt-1">${totalMaster.toLocaleString()}</div>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-slate-500 border-t border-slate-700/30 pt-2">Database rkap_2026.xlsx</div>
-                    </div>
-
-                    <!-- Program Aktif Card -->
-                    <div class="card-premium p-5 overflow-hidden relative group">
-                        <div class="absolute -right-2 -top-2 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition-all"></div>
-                        <div class="flex items-start gap-3 mb-3">
-                            <div class="p-2.5 rounded-lg bg-emerald-500/10 text-emerald-400">
-                                <i data-lucide="check-circle" class="w-5 h-5"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Program Aktif</h4>
-                                <div class="text-3xl font-bold tracking-tight text-white mt-1">${totalSelected.toLocaleString()}</div>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-slate-500 border-t border-slate-700/30 pt-2">Program yang dipilih untuk dijalankan</div>
-                    </div>
-
-                    <!-- Periode Card -->
-                    <div class="card-premium p-5 overflow-hidden relative group">
-                        <div class="absolute -right-2 -top-2 w-16 h-16 bg-blue-500/10 rounded-full blur-xl group-hover:bg-blue-500/20 transition-all"></div>
-                        <div class="flex items-start gap-3 mb-3">
-                            <div class="p-2.5 rounded-lg bg-blue-500/10 text-blue-400">
-                                <i data-lucide="calendar" class="w-5 h-5"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="text-slate-400 text-xs font-semibold uppercase tracking-wider">Periode</h4>
-                                <div id="periode-label" class="text-xl font-bold tracking-tight text-white mt-1">${this.state.filters.month || 'Tahun 2026'}</div>
-                            </div>
-                        </div>
-                        <div id="total-pagu-label" class="text-[10px] ${totalPaguFiltered > 0 ? 'text-emerald-400 font-semibold' : 'text-slate-500'} border-t border-slate-700/30 pt-2">
-                            Total Pagu: Rp ${totalPaguFiltered.toLocaleString('id-ID')}
-                        </div>
+                    <div class="relative group">
+                        <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-400 transition-colors"></i>
+                        <input type="text" placeholder="Cari kode program, deskripsi, atau kategori..." 
+                            class="w-full bg-slate-900/50 border border-slate-700/50 rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-indigo-500 focus:bg-slate-900 transition-all text-white placeholder:text-slate-600 shadow-inner"
+                            oninput="RkapApp.handleFilterUpdate('search', this.value)" value="${this.state.filters.search || ''}">
                     </div>
                 </div>
 
+                <div id="dashboard-content" class="p-6 overflow-y-auto custom-scrollbar flex-1 bg-slate-900/20">
+                    ${totalMaster === 0 ? `
+                        <div class="flex flex-col items-center justify-center py-20 text-slate-500">
+                            <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 animate-pulse">
+                                <i data-lucide="loader-2" class="w-8 h-8 animate-spin"></i>
+                            </div>
+                            <p>Memuat database program...</p>
+                        </div>
+                    ` : this.renderProgramList()}
+                </div>
             </div>
         `;
+
+        // Update sidebar stats
+        this.updateSidebarStats();
+
         lucide.createIcons();
+    },
+
+    updateSidebarStats() {
+        // Update sidebar rekap numbers
+        const totalMaster = this.masterData ? this.masterData.length : 0;
+        const totalSelected = this.state.selectedItems.size;
+        const currentMonth = this.state.filters.month || 'Tahun 2026';
+
+        const { month } = this.state.filters;
+        const filtered = (this.masterData || []).filter(p => {
+            const matchesBranch = !this.state.filters.branch || p.branch === this.state.filters.branch;
+            let matchesMonth = true;
+            if (month) {
+                let searchMonth = month.toUpperCase();
+                if (searchMonth === 'NOVEMBER') searchMonth = 'NOPEMBER';
+                if (p.monthly && Object.keys(p.monthly).length > 0) {
+                    matchesMonth = (p.monthly[searchMonth] || 0) > 0;
+                }
+            }
+            return matchesBranch && matchesMonth;
+        });
+        const totalPaguFiltered = filtered.reduce((acc, p) => acc + (p.pagu || 0), 0);
+
+        const masterEl = document.getElementById('sidebar-master-count');
+        const selectedEl = document.getElementById('sidebar-selected-count');
+        const periodeEl = document.getElementById('sidebar-periode');
+        const paguEl = document.getElementById('sidebar-pagu');
+
+        if (masterEl) masterEl.textContent = totalMaster.toLocaleString();
+        if (selectedEl) selectedEl.textContent = totalSelected.toLocaleString();
+        if (periodeEl) periodeEl.textContent = currentMonth;
+        if (paguEl) {
+            paguEl.textContent = `Rp ${(totalPaguFiltered / 1000000000).toFixed(1)}M`;
+            paguEl.classList.toggle('text-emerald-400', totalPaguFiltered > 0);
+            paguEl.classList.toggle('font-semibold', totalPaguFiltered > 0);
+        }
     },
 
     handleFilterUpdate(type, value) {
@@ -560,6 +537,9 @@ const RkapApp = {
         if (periodeLabel) {
             periodeLabel.textContent = this.state.filters.month || 'Tahun 2026';
         }
+
+        // Also update sidebar stats
+        this.updateSidebarStats();
     },
 
     renderProgramList() {
