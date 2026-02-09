@@ -1058,21 +1058,21 @@ const RkapApp = {
                             </thead>
                             <tbody class="divide-y divide-slate-800">
                                 ${(() => {
-                                    // Group programs by branch
-                                    const grouped = {};
-                                    selected.forEach(prog => {
-                                        const branchName = prog.branch || 'TANPA CABANG';
-                                        if (!grouped[branchName]) grouped[branchName] = [];
-                                        grouped[branchName].push(prog);
-                                    });
-                                    
-                                    // Sort branches alphabetically
-                                    const sortedBranches = Object.keys(grouped).sort();
-                                    
-                                    let globalIndex = 0;
-                                    return sortedBranches.map((branchName) => {
-                                        const programs = grouped[branchName];
-                                        return `
+                // Group programs by branch
+                const grouped = {};
+                selected.forEach(prog => {
+                    const branchName = prog.branch || 'TANPA CABANG';
+                    if (!grouped[branchName]) grouped[branchName] = [];
+                    grouped[branchName].push(prog);
+                });
+
+                // Sort branches alphabetically
+                const sortedBranches = Object.keys(grouped).sort();
+
+                let globalIndex = 0;
+                return sortedBranches.map((branchName) => {
+                    const programs = grouped[branchName];
+                    return `
                                             <!-- Branch Header -->
                                             <tr class="bg-slate-800/70 border-t-2 border-slate-600">
                                                 <td colspan="6" class="p-3">
@@ -1085,8 +1085,8 @@ const RkapApp = {
                                             </tr>
                                             <!-- Programs in this branch -->
                                             ${programs.map((prog) => {
-                                                globalIndex++;
-                                                return `
+                        globalIndex++;
+                        return `
                                                 <tr class="hover:bg-white/5 transition-colors">
                                                     <td class="p-4 text-sm text-slate-500 border-r border-slate-700/50 text-center">${globalIndex}</td>
                                                     <td class="p-4 border-r border-slate-700/50">
@@ -1099,17 +1099,17 @@ const RkapApp = {
                                                         </div>
                                                     </td>
                                                     ${[1, 2, 3, 4].map(week => {
-            const weekData = this.state.weeklyPlans[monthKey]?.[prog.description]?.[`W${week}`] || {};
-            const hasData = weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER;
-            const surveyDate = weekData.SURVEY_DATE ? new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-';
-            // Secure escape for inline JS: quotes, double quotes, backslashes, and newlines
-            const escapedDesc = prog.description
-                .replace(/\\/g, '\\\\')
-                .replace(/'/g, "\\'")
-                .replace(/"/g, '&quot;')
-                .replace(/\n/g, ' ')
-                .replace(/\r/g, '');
-            return `
+                            const weekData = this.state.weeklyPlans[monthKey]?.[prog.description]?.[`W${week}`] || {};
+                            const hasData = weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER;
+                            const surveyDate = weekData.SURVEY_DATE ? new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-';
+                            // Secure escape for inline JS: quotes, double quotes, backslashes, and newlines
+                            const escapedDesc = prog.description
+                                .replace(/\\/g, '\\\\')
+                                .replace(/'/g, "\\'")
+                                .replace(/"/g, '&quot;')
+                                .replace(/\n/g, ' ')
+                                .replace(/\r/g, '');
+                            return `
                                                             <td class="p-2 border-r border-slate-700/50 bg-slate-900/30 align-top">
                                                                 <button onclick="RkapApp.openWeeklyModal('${monthKey}', '${escapedDesc}', 'W${week}')"
                                                                     class="w-full p-2 rounded-lg border transition-all text-left ${hasData ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20' : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50'}">
@@ -1131,12 +1131,12 @@ const RkapApp = {
                                                                 </button>
                                                             </td>
                                                         `;
-        }).join('')}
+                        }).join('')}
                                                 </tr>
                                             `}).join('')}
                                         `;
-                                    }).join('');
-                                })()}
+                }).join('');
+            })()}
                             </tbody>
                         </table>
                     </div>
@@ -1229,14 +1229,14 @@ const RkapApp = {
                 </div>
 
                 <div class="flex gap-3 pt-4 border-t border-slate-700/50">
-                    <button onclick="RkapApp.clearWeeklySchedule('${monthKey}', '${progDesc.replace(/'/g, "\\'")}', '${weekKey}')" 
+                    <button onclick="RkapApp.clearWeeklySchedule('${monthKey}', '${progDesc}', '${weekKey}')" 
                         class="px-4 py-3 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium transition-all border border-red-500/30">
                         <i data-lucide="trash-2" class="w-4 h-4 inline"></i> Hapus
                     </button>
                     <button onclick="Modal.close()" class="flex-1 px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-medium transition-all">
                         Batal
                     </button>
-                    <button onclick="RkapApp.saveWeeklyModal('${monthKey}', '${progDesc.replace(/'/g, "\\'")}', '${weekKey}')" 
+                    <button onclick="RkapApp.saveWeeklyModal('${monthKey}', '${progDesc}', '${weekKey}')" 
                         class="flex-1 px-4 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-bold transition-all shadow-lg shadow-indigo-500/20">
                         Simpan
                     </button>
