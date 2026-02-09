@@ -236,7 +236,7 @@ const Pekerjaan = {
                 </div>
 
                 <div style="background: var(--bg-tertiary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
-                    <h4 style="margin-bottom: var(--spacing-md); font-size: 0.875rem; color: var(--text-secondary);">🔍 Tim Survey (pilih 2-3 orang)</h4>
+                    <h4 style="margin-bottom: var(--spacing-md); font-size: 0.875rem; color: var(--text-secondary);">🔍 Tim Survey (pilih 1-3 orang)</h4>
                     <div class="checkbox-group">
                         ${pekerjaCheckboxes || '<p class="text-muted">Belum ada pekerja. Tambahkan di Data Pekerja.</p>'}
                     </div>
@@ -270,8 +270,8 @@ const Pekerjaan = {
                     selectedSurveyors.push(cb.value);
                 });
 
-                if (selectedSurveyors.length < 2) {
-                    Toast.show('Pilih minimal 2 surveyor', 'error');
+                if (selectedSurveyors.length < 1) {
+                    Toast.show('Pilih minimal 1 surveyor', 'error');
                     return false;
                 }
 

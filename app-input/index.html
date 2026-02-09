@@ -688,7 +688,7 @@
                     </div>
 
                     <div style="background: var(--bg-tertiary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-lg);">
-                        <h4 style="margin-bottom: var(--spacing-md); font-size: 0.875rem; color: var(--text-secondary);" id="labelTim">🔍 Tim Survey (pilih 2-3 orang)</h4>
+                        <h4 style="margin-bottom: var(--spacing-md); font-size: 0.875rem; color: var(--text-secondary);" id="labelTim">🔍 Tim Survey (pilih 1-3 orang)</h4>
                         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-xs);">
                             ${pekerjaCheckboxes || '<p style="color: var(--text-muted);">Belum ada pekerja.</p>'}
                         </div>
@@ -770,7 +770,7 @@
 
                         // Update labels
                         labelTanggal.textContent = isPengawasan ? 'Tanggal Pengawasan' : 'Tanggal Survey';
-                        labelTim.innerHTML = isPengawasan ? '👁️ Tim Pengawasan (pilih 1-2 orang)' : '🔍 Tim Survey (pilih 2-3 orang)';
+                        labelTim.innerHTML = isPengawasan ? '👁️ Tim Pengawasan (pilih 1-2 orang)' : '🔍 Tim Survey (pilih 1-3 orang)';
                         labelCatatan.textContent = isPengawasan ? 'Catatan Pengawasan' : 'Catatan Survey';
 
                         // Update modal title
@@ -890,8 +890,8 @@
                             selectedSurveyors.push(cb.value);
                         });
 
-                        if (selectedSurveyors.length < 2) {
-                            Toast.show('Pilih minimal 2 surveyor', 'error');
+                        if (selectedSurveyors.length < 1) {
+                            Toast.show('Pilih minimal 1 surveyor', 'error');
                             return false;
                         }
 
