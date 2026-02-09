@@ -592,12 +592,12 @@ const RkapApp = {
                             </div>
                             <div class="flex items-center gap-2">
                                 ${prog.isManual ? `
-                                    <button onclick="event.stopPropagation(); RkapApp.deleteManualProgram('${prog.description.replace(/'/g, "\\'")}')" 
+                                    <button data-action="delete" data-program="${btoa(encodeURIComponent(prog.description))}" onclick="event.stopPropagation(); RkapApp.deleteManualProgram(decodeURIComponent(atob(this.dataset.program)))" 
                                         class="flex-shrink-0 p-2 rounded-lg text-rose-400 hover:bg-rose-500/20 transition-all" title="Hapus Program">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
                                 ` : ''}
-                                <button onclick="RkapApp.toggleProgram('${prog.description.replace(/'/g, "\\'")}')" 
+                                <button data-action="toggle" data-program="${btoa(encodeURIComponent(prog.description))}" onclick="RkapApp.toggleProgram(decodeURIComponent(atob(this.dataset.program)))" 
                                     class="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all shadow-lg ${isSelected ? 'bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 border border-rose-500/20' : 'bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500/30 border border-indigo-500/20'}">
                                     <i data-lucide="${isSelected ? 'x' : 'plus'}" class="w-4 h-4"></i>
                                     <span>${isSelected ? 'Batal' : 'Pilih'}</span>
@@ -654,13 +654,13 @@ const RkapApp = {
                                 ${prog.pagu ? prog.pagu.toLocaleString('id-ID') : '-'}
                             </td>
                             <td class="p-3 text-center w-24">
-                                <button onclick="RkapApp.toggleProgram('${prog.description.replace(/'/g, "\\'")}')" 
+                                <button data-action="toggle" data-program="${btoa(encodeURIComponent(prog.description))}" onclick="RkapApp.toggleProgram(decodeURIComponent(atob(this.dataset.program)))" 
                                     class="p-1.5 rounded-lg transition-all ${isSelected ? 'bg-rose-500/20 text-rose-400 hover:bg-rose-500/30' : 'bg-slate-700 text-slate-400 hover:bg-indigo-500 hover:text-white'}"
                                     title="${isSelected ? 'Batalkan Pilihan' : 'Pilih Program'}">
                                     <i data-lucide="${isSelected ? 'minus' : 'plus'}" class="w-4 h-4"></i>
                                 </button>
                                 ${prog.isManual ? `
-                                    <button onclick="RkapApp.deleteManualProgram('${prog.description.replace(/'/g, "\\'")}')" 
+                                    <button data-action="delete" data-program="${btoa(encodeURIComponent(prog.description))}" onclick="RkapApp.deleteManualProgram(decodeURIComponent(atob(this.dataset.program)))" 
                                         class="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/20 transition-all ml-1" title="Hapus">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
