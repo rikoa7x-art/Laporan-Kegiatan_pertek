@@ -724,6 +724,10 @@ const RkapApp = {
     },
 
     toggleProgram(progId) {
+        // Save scroll position before re-render
+        const programListContainer = document.querySelector('#program-list-container');
+        const scrollPos = programListContainer ? programListContainer.scrollTop : 0;
+
         if (this.state.selectedItems.has(progId)) {
             this.state.selectedItems.delete(progId);
             Toast.show('Program dihapus dari daftar aktif', 'info');
@@ -737,6 +741,14 @@ const RkapApp = {
         // Efficient re-render: just update dashboard if we are there
         if (this.currentView === 'dashboard') {
             this.renderDashboard(); // Full re-render needed to update stats and list styles
+
+            // Restore scroll position after re-render
+            requestAnimationFrame(() => {
+                const container = document.querySelector('#program-list-container');
+                if (container) {
+                    container.scrollTop = scrollPos;
+                }
+            });
         } else {
             this.render(); // Generic render
         }
