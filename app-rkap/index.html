@@ -242,18 +242,24 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
-    <!-- Shared Modules -->
-    <script src="../js/utils.js"></script>
-    <script src="../js/storage.js"></script>
-    <script src="../js/sync-ui.js"></script>
-    <script src="../js/modal.js"></script>
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
 
-    <!-- App Logic -->
-    <script src="program_data.js"></script>
-    <script src="rkap_data.js"></script>
-    <script src="js/rkap.js"></script>
+    <!-- Scripts -->
+    <script src="../js/storage.js?v=20260209"></script>
+    <script src="../js/modal.js?v=20260209"></script>
+    <script src="../js/utils.js?v=20260209"></script>
+    <script src="../js/sync-ui.js?v=20260209"></script>
+    <script src="program_data.js?v=20260209"></script>
+    <script src="js/rkap.js?v=20260209"></script>
+
     <script>
-        lucide.createIcons();
+        // Initialize app when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM ready, initializing RKAP app...');
+            RkapApp.init();
+            lucide.createIcons();
+        });
     </script>
 </body>
 
