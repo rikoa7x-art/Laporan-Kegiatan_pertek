@@ -1057,19 +1057,48 @@ const RkapApp = {
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-800">
-                                ${selected.map((prog, idx) => `
-                                    <tr class="hover:bg-white/5 transition-colors">
-                                        <td class="p-4 text-sm text-slate-500 border-r border-slate-700/50 text-center">${idx + 1}</td>
-                                        <td class="p-4 border-r border-slate-700/50">
-                                            <div class="font-semibold text-slate-100 mb-1 text-sm">${prog.description}</div>
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-[10px] text-slate-500 font-mono">${prog.code || '-'}</span>
-                                                <div class="text-[10px] text-indigo-400 font-bold">
-                                                    Rp ${(prog.monthly[currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()] || 0).toLocaleString('id-ID')}
-                                                </div>
-                                            </div>
-                                        </td>
-                                        ${[1, 2, 3, 4].map(week => {
+                                ${(() => {
+                                    // Group programs by branch
+                                    const grouped = {};
+                                    selected.forEach(prog => {
+                                        const branchName = prog.branch || 'TANPA CABANG';
+                                        if (!grouped[branchName]) grouped[branchName] = [];
+                                        grouped[branchName].push(prog);
+                                    });
+                                    
+                                    // Sort branches alphabetically
+                                    const sortedBranches = Object.keys(grouped).sort();
+                                    
+                                    let globalIndex = 0;
+                                    return sortedBranches.map((branchName) => {
+                                        const programs = grouped[branchName];
+                                        return `
+                                            <!-- Branch Header -->
+                                            <tr class="bg-slate-800/70 border-t-2 border-slate-600">
+                                                <td colspan="6" class="p-3">
+                                                    <div class="flex items-center gap-2">
+                                                        <i data-lucide="map-pin" class="w-4 h-4 text-indigo-400"></i>
+                                                        <span class="text-sm font-bold text-indigo-300 uppercase tracking-wider">${branchName}</span>
+                                                        <span class="text-xs text-slate-500 ml-2">(${programs.length} program)</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <!-- Programs in this branch -->
+                                            ${programs.map((prog) => {
+                                                globalIndex++;
+                                                return `
+                                                <tr class="hover:bg-white/5 transition-colors">
+                                                    <td class="p-4 text-sm text-slate-500 border-r border-slate-700/50 text-center">${globalIndex}</td>
+                                                    <td class="p-4 border-r border-slate-700/50">
+                                                        <div class="font-semibold text-slate-100 mb-1 text-sm">${prog.description}</div>
+                                                        <div class="flex items-center gap-2">
+                                                            <span class="text-[10px] text-slate-500 font-mono">${prog.code || '-'}</span>
+                                                            <div class="text-[10px] text-indigo-400 font-bold">
+                                                                Rp ${(prog.monthly[currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()] || 0).toLocaleString('id-ID')}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    ${[1, 2, 3, 4].map(week => {
             const weekData = this.state.weeklyPlans[monthKey]?.[prog.description]?.[`W${week}`] || {};
             const hasData = weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER;
             const surveyDate = weekData.SURVEY_DATE ? new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-';
@@ -1081,30 +1110,33 @@ const RkapApp = {
                 .replace(/\n/g, ' ')
                 .replace(/\r/g, '');
             return `
-                                                <td class="p-2 border-r border-slate-700/50 bg-slate-900/30 align-top">
-                                                    <button onclick="RkapApp.openWeeklyModal('${monthKey}', '${escapedDesc}', 'W${week}')"
-                                                        class="w-full p-2 rounded-lg border transition-all text-left ${hasData ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20' : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50'}">
-                                                        ${hasData ? `
-                                                            <div class="text-[10px] text-amber-400 font-bold mb-1">📅 ${surveyDate}</div>
-                                                            <div class="space-y-0.5 text-[9px]">
-                                                                ${weekData.SURVEYOR_1 ? `<div class="text-rose-400">▸ ${weekData.SURVEYOR_1}</div>` : ''}
-                                                                ${weekData.SURVEYOR_2 ? `<div class="text-rose-400">▸ ${weekData.SURVEYOR_2}</div>` : ''}
-                                                                ${weekData.DRAFTER ? `<div class="text-indigo-400">▸ ${weekData.DRAFTER}</div>` : ''}
-                                                                ${weekData.ESTIMATOR ? `<div class="text-emerald-400">▸ ${weekData.ESTIMATOR}</div>` : ''}
-                                                                ${weekData.MONEV ? `<div class="text-purple-400">▸ ${weekData.MONEV}</div>` : ''}
-                                                            </div>
-                                                        ` : `
-                                                            <div class="flex flex-col items-center justify-center py-3 text-slate-500">
-                                                                <i data-lucide="plus-circle" class="w-5 h-5 mb-1"></i>
-                                                                <span class="text-[9px] font-medium">Atur Jadwal</span>
-                                                            </div>
-                                                        `}
-                                                    </button>
-                                                </td>
-                                            `;
+                                                            <td class="p-2 border-r border-slate-700/50 bg-slate-900/30 align-top">
+                                                                <button onclick="RkapApp.openWeeklyModal('${monthKey}', '${escapedDesc}', 'W${week}')"
+                                                                    class="w-full p-2 rounded-lg border transition-all text-left ${hasData ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20' : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50'}">
+                                                                    ${hasData ? `
+                                                                        <div class="text-[10px] text-amber-400 font-bold mb-1">📅 ${surveyDate}</div>
+                                                                        <div class="space-y-0.5 text-[9px]">
+                                                                            ${weekData.SURVEYOR_1 ? `<div class="text-rose-400">▸ ${weekData.SURVEYOR_1}</div>` : ''}
+                                                                            ${weekData.SURVEYOR_2 ? `<div class="text-rose-400">▸ ${weekData.SURVEYOR_2}</div>` : ''}
+                                                                            ${weekData.DRAFTER ? `<div class="text-indigo-400">▸ ${weekData.DRAFTER}</div>` : ''}
+                                                                            ${weekData.ESTIMATOR ? `<div class="text-emerald-400">▸ ${weekData.ESTIMATOR}</div>` : ''}
+                                                                            ${weekData.MONEV ? `<div class="text-purple-400">▸ ${weekData.MONEV}</div>` : ''}
+                                                                        </div>
+                                                                    ` : `
+                                                                        <div class="flex flex-col items-center justify-center py-3 text-slate-500">
+                                                                            <i data-lucide="plus-circle" class="w-5 h-5 mb-1"></i>
+                                                                            <span class="text-[9px] font-medium">Atur Jadwal</span>
+                                                                        </div>
+                                                                    `}
+                                                                </button>
+                                                            </td>
+                                                        `;
         }).join('')}
-                                    </tr>
-                                `).join('')}
+                                                </tr>
+                                            `}).join('')}
+                                        `;
+                                    }).join('');
+                                })()}
                             </tbody>
                         </table>
                     </div>
