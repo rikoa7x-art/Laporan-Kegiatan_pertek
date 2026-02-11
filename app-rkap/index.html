@@ -254,12 +254,8 @@
     <script src="js/rkap.js?v=20260209"></script>
 
     <script>
-        // Initialize app when DOM is ready
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM ready, initializing RKAP app...');
-            RkapApp.init();
-            lucide.createIcons();
-        });
+        // Initialization handled by rkap.js (line 2230+)
+        // lucide icons are also created by rkap.js after each render
     </script>
 </body>
 

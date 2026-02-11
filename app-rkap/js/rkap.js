@@ -18,7 +18,7 @@ const RkapApp = {
         personnel: {
             manager: ["Dadi Riswadi"],
             asman: ["M. Sulaeman", "Riko Komara"],
-            staff: ["Dian Suhendrik", "Yunia", "Anditya", "Fahry", "Aldy"]
+            staff: ["Dian Suhendrik", "Yunia", "Andit", "Fahry", "Aldy"]
         },
         viewMode: 'list', // 'list' or 'table'
         displayLimit: 50
@@ -142,7 +142,8 @@ const RkapApp = {
             'dashboard': 'Program Kerja',
             'monthly': 'Rencana Bulanan',
             'weekly': 'Rencana Mingguan',
-            'daily': 'Monitoring Harian'
+            'daily': 'Monitoring Harian',
+            'direksi': 'Laporan Direksi'
         };
         const titleEl = document.getElementById('pageTitle');
         if (titleEl) titleEl.textContent = titles[viewId] || 'RKAP';
@@ -1393,12 +1394,15 @@ const RkapApp = {
     },
 
     updateSurveyDate(monthKey, progDesc, weekKey, surveyDate) {
+        // Sanitize progDesc for Firebase key
+        const sanitizedProgDesc = this.sanitizeFirebaseKey(progDesc);
+
         if (!this.state.weeklyPlans) this.state.weeklyPlans = {};
         if (!this.state.weeklyPlans[monthKey]) this.state.weeklyPlans[monthKey] = {};
-        if (!this.state.weeklyPlans[monthKey][progDesc]) this.state.weeklyPlans[monthKey][progDesc] = {};
-        if (!this.state.weeklyPlans[monthKey][progDesc][weekKey]) this.state.weeklyPlans[monthKey][progDesc][weekKey] = {};
+        if (!this.state.weeklyPlans[monthKey][sanitizedProgDesc]) this.state.weeklyPlans[monthKey][sanitizedProgDesc] = {};
+        if (!this.state.weeklyPlans[monthKey][sanitizedProgDesc][weekKey]) this.state.weeklyPlans[monthKey][sanitizedProgDesc][weekKey] = {};
 
-        const weekData = this.state.weeklyPlans[monthKey][progDesc][weekKey];
+        const weekData = this.state.weeklyPlans[monthKey][sanitizedProgDesc][weekKey];
 
         // Store survey date
         weekData.SURVEY_DATE = surveyDate;
@@ -1592,11 +1596,7 @@ const RkapApp = {
         Toast.show('Excel Mingguan Detail berhasil diunduh', 'success');
     },
 
-    handleDailyFilterChange(type, val) {
-        this.state.filters[type] = val;
-        this.renderDaily();
-        this.saveData();
-    },
+    // handleDailyFilterChange is defined below (near renderDaily)
 
     renderDaily() {
         // Refactored for read-only personnel grid

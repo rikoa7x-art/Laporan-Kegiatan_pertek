@@ -214,7 +214,7 @@ const Storage = {
     onSyncCallback: null,
     managedListener: false,
     _resolveInit: null,
-    isInitialized: null, // Initialized below
+    isInitialized: null, // Will be set after object creation
 
     /**
      * Initialize Firebase client
@@ -485,6 +485,11 @@ const Storage = {
         }
     },
 };
+
+// Create the isInitialized Promise after the object is fully constructed
+Storage.isInitialized = new Promise(resolve => {
+    Storage._resolveInit = resolve;
+});
 
 // Initialize sample data and cloud on load
 document.addEventListener('DOMContentLoaded', async () => {
