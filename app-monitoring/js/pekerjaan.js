@@ -440,32 +440,40 @@ const Pekerjaan = {
 
             // Render dokumen list for this stage
             let stageDokumenHtml = '';
-            if (tahap.dokumen && tahap.dokumen.length > 0) {
-                const dokumenItems = tahap.dokumen.map((doc) => {
-                    const globalIndex = window._currentDokumen.length;
-                    window._currentDokumen.push(doc);
-                    const icon = doc.type && doc.type.includes('pdf') ? '📄' : '🖼️';
-                    const sizeKB = doc.size ? Math.round(doc.size / 1024) : 0;
-                    return `
-                        <div style="display: flex; align-items: center; gap: var(--spacing-xs); padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border-radius: var(--radius-sm); font-size: 0.75rem;">
-                            <span>${icon}</span>
-                            <span style="flex: 1; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${doc.name}">${doc.name}</span>
-                            <span style="color: var(--text-muted); font-size: 0.65rem;">${sizeKB}KB</span>
-                            <button type="button" onclick="Pekerjaan.viewFile(${globalIndex})" style="background: var(--primary); color: white; border: none; padding: 2px 5px; border-radius: 3px; cursor: pointer; font-size: 0.65rem;">Lihat</button>
-                            <button type="button" onclick="Pekerjaan.downloadFile(${globalIndex})" style="background: var(--success); color: white; border: none; padding: 2px 5px; border-radius: 3px; cursor: pointer; font-size: 0.65rem;">↓</button>
-                        </div>
-                    `;
-                }).join('');
-
-                stageDokumenHtml = `
-                    <div style="margin-top: var(--spacing-sm);">
-                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: var(--spacing-xs);">📎 Lampiran:</p>
-                        <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-xs);">
-                            ${dokumenItems}
-                        </div>
+            const stageDocs = tahap.dokumen || [];
+            const dokumenItems = stageDocs.map((doc, docIdx) => {
+                const globalIndex = window._currentDokumen.length;
+                window._currentDokumen.push(doc);
+                const icon = doc.type && doc.type.includes('pdf') ? '📄' : '🖼️';
+                const sizeKB = doc.size ? Math.round(doc.size / 1024) : 0;
+                return `
+                    <div style="display: flex; align-items: center; gap: var(--spacing-xs); padding: var(--spacing-xs) var(--spacing-sm); background: var(--bg-secondary); border-radius: var(--radius-sm); font-size: 0.75rem;">
+                        <span>${icon}</span>
+                        <span style="flex: 1; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${doc.name}">${doc.name}</span>
+                        <span style="color: var(--text-muted); font-size: 0.65rem;">${sizeKB}KB</span>
+                        <button type="button" onclick="Pekerjaan.viewFile(${globalIndex})" style="background: var(--primary); color: white; border: none; padding: 2px 5px; border-radius: 3px; cursor: pointer; font-size: 0.65rem;">Lihat</button>
+                        <button type="button" onclick="Pekerjaan.downloadFile(${globalIndex})" style="background: var(--success); color: white; border: none; padding: 2px 5px; border-radius: 3px; cursor: pointer; font-size: 0.65rem;">↓</button>
+                        <button type="button" onclick="Pekerjaan.deleteStageDocument('${id}', ${index}, ${docIdx})" style="background: var(--danger, #ef4444); color: white; border: none; padding: 2px 5px; border-radius: 3px; cursor: pointer; font-size: 0.65rem;" title="Hapus">🗑️</button>
                     </div>
                 `;
-            }
+            }).join('');
+
+            stageDokumenHtml = `
+                <div style="margin-top: var(--spacing-sm);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--spacing-xs);">
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">📎 Lampiran (${stageDocs.length})</p>
+                        <label style="display: inline-flex; align-items: center; gap: 4px; background: var(--primary); color: white; border: none; padding: 3px 8px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.7rem; font-weight: 600;">
+                            📎+ Upload
+                            <input type="file" accept=".jpg,.jpeg,.pdf,image/jpeg,application/pdf" style="display: none;" onchange="Pekerjaan.uploadStageDocument('${id}', ${index}, this)">
+                        </label>
+                    </div>
+                    ${stageDocs.length > 0 ? `
+                        <div style="display: flex; flex-direction: column; gap: var(--spacing-xs);">
+                            ${dokumenItems}
+                        </div>
+                    ` : '<p style="font-size: 0.7rem; color: var(--text-muted); font-style: italic;">Belum ada lampiran</p>'}
+                </div>
+            `;
 
             return `
                 <div class="timeline-item ${isActive ? 'active' : ''} ${tahap.tanggalSelesai ? 'completed' : ''}">
@@ -584,11 +592,19 @@ const Pekerjaan = {
     },
 
     /**
-     * Upload document
+     * Upload document (global attachment)
      */
     uploadDocument(id, input) {
         const file = input.files[0];
         if (!file) return;
+
+        // Validate file type (JPEG and PDF only)
+        const allowedTypes = ['image/jpeg', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+            Toast.show('Format tidak didukung. Gunakan JPEG atau PDF.', 'error');
+            input.value = '';
+            return;
+        }
 
         if (file.size > 2 * 1024 * 1024) {
             Toast.show('Ukuran file terlalu besar (max 2MB)', 'error');
@@ -606,6 +622,7 @@ const Pekerjaan = {
                 id: Utils.generateId(),
                 name: file.name,
                 type: file.type,
+                size: file.size,
                 data: e.target.result,
                 createdAt: new Date().toISOString()
             });
@@ -617,6 +634,86 @@ const Pekerjaan = {
             this.viewDetail(id);
         };
         reader.readAsDataURL(file);
+    },
+
+    /**
+     * Upload document to a specific timeline stage
+     * @param {string} pekerjaanId - Pekerjaan ID
+     * @param {number} stageIndex - Index of the tahapan
+     * @param {HTMLInputElement} input - File input element
+     */
+    uploadStageDocument(pekerjaanId, stageIndex, input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Validate file type (JPEG and PDF only)
+        const allowedTypes = ['image/jpeg', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+            Toast.show('Format tidak didukung. Gunakan JPEG atau PDF.', 'error');
+            input.value = '';
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            Toast.show('Ukuran file terlalu besar (max 2MB)', 'error');
+            input.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, pekerjaanId);
+            if (!pekerjaan || !pekerjaan.tahapan || !pekerjaan.tahapan[stageIndex]) {
+                Toast.show('Tahapan tidak ditemukan', 'error');
+                return;
+            }
+
+            const tahap = pekerjaan.tahapan[stageIndex];
+            if (!tahap.dokumen) tahap.dokumen = [];
+
+            tahap.dokumen.push({
+                id: Utils.generateId(),
+                name: file.name,
+                type: file.type,
+                size: file.size,
+                data: e.target.result,
+                createdAt: new Date().toISOString()
+            });
+
+            Storage.update(Storage.KEYS.PEKERJAAN, pekerjaanId, pekerjaan);
+            Toast.show(`Lampiran berhasil diunggah ke tahap ${Utils.getStatusDisplay(tahap.status)}`, 'success');
+
+            // Re-open modal to show updated documents
+            this.viewDetail(pekerjaanId);
+        };
+        reader.readAsDataURL(file);
+    },
+
+    /**
+     * Delete document from a specific timeline stage
+     * @param {string} pekerjaanId - Pekerjaan ID
+     * @param {number} stageIndex - Index of the tahapan
+     * @param {number} docIndex - Index of the document in tahap.dokumen
+     */
+    async deleteStageDocument(pekerjaanId, stageIndex, docIndex) {
+        const confirmed = await Modal.confirm({
+            title: 'Hapus Lampiran',
+            message: 'Apakah Anda yakin ingin menghapus lampiran ini?',
+            type: 'danger'
+        });
+
+        if (confirmed) {
+            const pekerjaan = Storage.findById(Storage.KEYS.PEKERJAAN, pekerjaanId);
+            if (pekerjaan && pekerjaan.tahapan && pekerjaan.tahapan[stageIndex]) {
+                const tahap = pekerjaan.tahapan[stageIndex];
+                if (tahap.dokumen && tahap.dokumen[docIndex]) {
+                    tahap.dokumen.splice(docIndex, 1);
+                    Storage.update(Storage.KEYS.PEKERJAAN, pekerjaanId, pekerjaan);
+                    Toast.show('Lampiran berhasil dihapus', 'success');
+                    this.viewDetail(pekerjaanId);
+                }
+            }
+        }
     },
 
     /**
