@@ -10,58 +10,180 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        /* Dashboard Monitoring Styles */
+        /* =============================================
+           DASHBOARD MONITORING — PREMIUM UI REDESIGN
+           ============================================= */
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.5);
+        }
+
+        /* Entrance Animations */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        @keyframes pulseGlow {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+            }
+
+            50% {
+                box-shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+            }
+        }
+
+        @keyframes progressFill {
+            from {
+                width: 0;
+            }
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-4px);
+            }
+        }
+
+        /* ---- Container ---- */
         .dashboard-app-container {
             min-height: 100vh;
             background: var(--bg-primary);
+            background-image:
+                radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.08) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
             padding: var(--spacing-lg);
         }
 
+        /* ---- Glassmorphism Header ---- */
         .dashboard-app-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: var(--spacing-lg);
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
+            padding: var(--spacing-md) var(--spacing-lg);
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: var(--radius-xl);
             margin-bottom: var(--spacing-xl);
             flex-wrap: wrap;
             gap: var(--spacing-md);
+            position: sticky;
+            top: 12px;
+            z-index: 50;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            animation: fadeUp 0.5s ease-out;
+        }
+
+        .dashboard-app-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--primary-light), transparent);
+            border-radius: 2px;
         }
 
         .dashboard-app-header h1 {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe, #a5b4fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
         .header-controls {
             display: flex;
             align-items: center;
-            gap: var(--spacing-md);
+            gap: 8px;
             flex-wrap: wrap;
         }
 
         .nav-link-input {
             display: inline-flex;
             align-items: center;
-            gap: var(--spacing-sm);
-            padding: var(--spacing-sm) var(--spacing-md);
-            background: var(--primary);
+            gap: 6px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border: none;
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-full);
             color: white;
             text-decoration: none;
-            font-size: 0.875rem;
-            transition: all var(--transition-fast);
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
         }
 
         .nav-link-input:hover {
-            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
         }
 
+        /* ---- Dashboard Content ---- */
         .dashboard-content {
             max-width: 1600px;
             margin: 0 auto;
@@ -83,65 +205,147 @@
             margin-bottom: var(--spacing-xl);
         }
 
+        /* ---- Stat Cards — Gradient Style ---- */
         .stat-card-large {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            padding: var(--spacing-md);
+            border: none;
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg) var(--spacing-md);
             text-align: center;
-            transition: all var(--transition-fast);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: flex-start;
             gap: var(--spacing-md);
+            position: relative;
+            overflow: hidden;
+            animation: fadeScale 0.5s ease-out backwards;
+            cursor: default;
+        }
+
+        .stat-card-large:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .stat-card-large:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .stat-card-large:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .stat-card-large:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+
+        .stat-card-large:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        .stat-card-large:nth-child(6) {
+            animation-delay: 0.3s;
+        }
+
+        .stat-card-large::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), transparent 60%);
+            pointer-events: none;
+        }
+
+        .stat-card-large::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            pointer-events: none;
         }
 
         .stat-card-large:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .stat-card-large .stat-icon {
-            font-size: 1.25rem;
-            margin-bottom: 0;
-        }
-
-        .stat-card-large .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0;
-        }
-
-        .stat-card-large .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-            font-weight: 500;
+        /* Default card bg */
+        .stat-card-large {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .stat-card-large.survey {
-            border-left: 3px solid #3b82f6;
+            background: linear-gradient(135deg, #1e3a5f, #1e40af);
+            border: none;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
         }
 
         .stat-card-large.drafting {
-            border-left: 3px solid #f59e0b;
+            background: linear-gradient(135deg, #422006, #b45309);
+            border: none;
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.15);
         }
 
         .stat-card-large.estimasi {
-            border-left: 3px solid #8b5cf6;
+            background: linear-gradient(135deg, #2e1065, #7c3aed);
+            border: none;
+            box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15);
         }
 
         .stat-card-large.review {
-            border-left: 3px solid #ec4899;
+            background: linear-gradient(135deg, #500724, #db2777);
+            border: none;
+            box-shadow: 0 4px 20px rgba(236, 72, 153, 0.15);
         }
 
         .stat-card-large.wasdal {
-            border-left: 3px solid #06b6d4;
+            background: linear-gradient(135deg, #083344, #0891b2);
+            border: none;
+            box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15);
         }
 
         .stat-card-large.selesai {
-            border-left: 3px solid #10b981;
+            background: linear-gradient(135deg, #052e16, #059669);
+            border: none;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.15);
         }
 
+        .stat-card-large .stat-icon {
+            font-size: 1.75rem;
+            margin-bottom: 0;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-md);
+            flex-shrink: 0;
+        }
+
+        .stat-card-large .stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 2px;
+            letter-spacing: -0.02em;
+            color: #fff;
+        }
+
+        .stat-card-large .stat-label {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ---- Workflow Overview ---- */
         .workflow-overview {
             display: flex;
             gap: var(--spacing-md);
@@ -153,9 +357,10 @@
         .workflow-stage {
             flex: 1;
             min-width: 120px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: var(--radius-lg);
             padding: var(--spacing-sm) var(--spacing-md);
             text-align: center;
             position: relative;
@@ -163,6 +368,12 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .workflow-stage:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            background: rgba(30, 41, 59, 0.8);
         }
 
         .workflow-stage::after {
@@ -194,20 +405,24 @@
         .workflow-stage .stage-count {
             font-size: 1.125rem;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--primary-light);
         }
 
+        /* ---- Pekerjaan Section ---- */
         .pekerjaan-section {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-lg);
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius-xl);
             overflow: hidden;
             margin-bottom: var(--spacing-xl);
+            animation: fadeUp 0.6s ease-out backwards;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
         }
 
         .section-header {
             padding: var(--spacing-lg);
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -215,67 +430,276 @@
             gap: var(--spacing-md);
         }
 
+        .section-header h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .section-body {
             padding: var(--spacing-lg);
         }
 
-        .pekerjaan-table {
-            width: 100%;
-            border-collapse: collapse;
+        /* ---- Search Bar ---- */
+        .search-container {
+            position: relative;
+            margin-bottom: var(--spacing-md);
         }
 
-        .pekerjaan-table th,
-        .pekerjaan-table td {
-            padding: var(--spacing-md);
-            text-align: left;
-            border-bottom: 1px solid var(--border-color);
+        .search-container input {
+            width: 100%;
+            padding: 10px 16px 10px 40px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: var(--radius-full);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .search-container input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        .search-container input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-container .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.9rem;
+            pointer-events: none;
+        }
+
+        /* ---- Filter Bar Improved ---- */
+        .filter-bar .form-select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.15);
+            border-radius: var(--radius-full);
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            transition: all 0.2s ease;
+            min-width: 140px;
+        }
+
+        .filter-bar .form-select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+
+        /* ---- Pekerjaan Table — Modern ---- */
+        .pekerjaan-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
         .pekerjaan-table th {
-            background: var(--bg-tertiary);
+            background: rgba(99, 102, 241, 0.08);
             font-weight: 600;
+            font-size: 0.75rem;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .pekerjaan-table th:first-child {
+            border-radius: var(--radius-md) 0 0 0;
+        }
+
+        .pekerjaan-table th:last-child {
+            border-radius: 0 var(--radius-md) 0 0;
+        }
+
+        .pekerjaan-table td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
             font-size: 0.875rem;
-            color: var(--text-secondary);
+            vertical-align: middle;
+        }
+
+        .pekerjaan-table tbody tr {
+            transition: all 0.2s ease;
         }
 
         .pekerjaan-table tbody tr:hover {
-            background: var(--bg-hover);
+            background: rgba(99, 102, 241, 0.06);
         }
 
         .pekerjaan-table tbody tr:last-child td {
             border-bottom: none;
         }
 
+        /* ---- Progress Bar Mini — Animated ---- */
         .progress-mini {
             display: flex;
             align-items: center;
-            gap: var(--spacing-sm);
+            gap: 8px;
         }
 
         .progress-mini .bar {
             flex: 1;
-            height: 6px;
-            background: var(--bg-primary);
+            height: 7px;
+            background: rgba(15, 23, 42, 0.8);
             border-radius: var(--radius-full);
             overflow: hidden;
+            position: relative;
         }
 
         .progress-mini .bar-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--primary), var(--primary-light));
+            background: linear-gradient(90deg, #6366f1, #818cf8, #a5b4fc);
+            background-size: 200% 100%;
             border-radius: var(--radius-full);
+            animation: progressFill 1s ease-out, shimmer 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        .progress-mini .bar-fill::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.4;
         }
 
         .progress-mini .value {
             font-size: 0.75rem;
-            font-weight: 600;
-            min-width: 35px;
+            font-weight: 700;
+            min-width: 38px;
+            text-align: right;
+            color: var(--primary-light);
         }
 
+        /* ---- Badge Enhancements ---- */
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.15) !important;
+            color: #f87171 !important;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: var(--radius-full) !important;
+            font-size: 0.65rem !important;
+            padding: 3px 8px !important;
+            animation: pulseGlow 2s ease-in-out infinite;
+        }
+
+        /* ---- Category Cards (in grid) ---- */
+        .dashboard-grid .pekerjaan-section .section-header h3 {
+            font-size: 0.95rem;
+        }
+
+        .dashboard-grid .pekerjaan-section {
+            animation-delay: 0.1s;
+        }
+
+        .dashboard-grid .pekerjaan-section:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dashboard-grid .pekerjaan-section:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        /* ---- RKAP Weekly Section ---- */
+        .rkap-section {
+            animation-delay: 0.05s;
+        }
+
+        /* ---- Buttons Refined ---- */
+        .header-controls .btn {
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            padding: 8px 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .header-controls .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .header-controls .btn-secondary {
+            background: rgba(51, 65, 85, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .header-controls .btn-secondary:hover {
+            background: rgba(51, 65, 85, 0.9);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* ---- Table Action Buttons ---- */
+        .pekerjaan-table .btn-sm {
+            border-radius: var(--radius-full);
+            padding: 5px 12px;
+            font-size: 0.72rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .pekerjaan-table .btn-secondary.btn-sm {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: var(--primary-light);
+        }
+
+        .pekerjaan-table .btn-secondary.btn-sm:hover {
+            background: rgba(99, 102, 241, 0.25);
+        }
+
+        .pekerjaan-table .btn-danger.btn-sm {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.15);
+            color: #f87171;
+        }
+
+        .pekerjaan-table .btn-danger.btn-sm:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        /* ---- Empty State ---- */
+        .empty-state {
+            padding: var(--spacing-xl);
+            text-align: center;
+            color: var(--text-muted);
+        }
+
+        .empty-state .empty-icon {
+            font-size: 2.5rem;
+            display: block;
+            margin-bottom: var(--spacing-sm);
+            opacity: 0.4;
+        }
+
+        /* ---- Responsive ---- */
         @media (max-width: 768px) {
+            .dashboard-app-container {
+                padding: var(--spacing-sm);
+            }
+
             .dashboard-app-header {
                 flex-direction: column;
                 align-items: flex-start;
+                position: static;
+                border-radius: var(--radius-lg);
+            }
+
+            .dashboard-app-header::after {
+                display: none;
             }
 
             .workflow-stage::after {
@@ -287,49 +711,64 @@
                 overflow-x: auto;
             }
         }
+
+        @media (max-width: 480px) {
+            .header-controls {
+                width: 100%;
+            }
+
+            .header-controls .btn,
+            .header-controls .nav-link-input {
+                flex: 1;
+                justify-content: center;
+                font-size: 0.75rem;
+                padding: 8px 10px;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div class="dashboard-app-container">
         <header class="dashboard-app-header">
-            <h1 style="display: flex; align-items: center; gap: var(--spacing-sm);">
+            <h1>
                 📊 Dashboard Monitoring Pekerjaan
             </h1>
             <div class="header-controls">
                 <button onclick="DashboardApp.refreshData()" class="btn btn-secondary"
-                    style="display: flex; align-items: center; gap: var(--spacing-sm);">
-                    🔄 Sinkronkan Data
+                    style="display: flex; align-items: center; gap: 6px;">
+                    🔄 Sync
                 </button>
                 <a href="../app-input/index.html" class="nav-link-input">
-                    📋 Input Pekerjaan
+                    📋 Input
                 </a>
-                <a href="../app-rkap/index.html" class="nav-link-input bg-rose-600 hover:bg-rose-700">
+                <a href="../app-rkap/index.html" class="nav-link-input"
+                    style="background: linear-gradient(135deg, #e11d48, #be123c);">
                     🚀 RKAP
                 </a>
                 <button onclick="LaporanDireksi.show()" class="btn btn-primary"
-                    style="display: flex; align-items: center; gap: var(--spacing-sm); background: #8b5cf6;">
-                    📊 Laporan Direksi
+                    style="display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 9999px;">
+                    📊 Laporan
                 </button>
                 <button onclick="SyncUI.showSettings()" class="btn btn-secondary"
-                    style="padding: 4px 8px; font-size: 1.25rem; border: 1px solid var(--border-color);"
+                    style="padding: 6px 10px; font-size: 1.1rem; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;"
                     title="Cloud Settings">⚙️</button>
             </div>
         </header>
 
         <div class="dashboard-content">
             <!-- RKAP Weekly Schedule - Main Feature -->
-            <div class="pekerjaan-section" style="margin-bottom: var(--spacing-lg);">
+            <div class="pekerjaan-section rkap-section" style="margin-bottom: var(--spacing-lg);">
                 <div class="section-header"
-                    style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); border: none;">
-                    <h3 style="color: white; display: flex; align-items: center; gap: 8px;">
-                        📅 Rencana Program Kerja Mingguan (RKAP)
+                    style="background: linear-gradient(135deg, #312e81 0%, #4f46e5 40%, #7c3aed 100%); border: none; padding: var(--spacing-md) var(--spacing-lg);">
+                    <h3 style="color: white; display: flex; align-items: center; gap: 8px; font-size: 1.1rem;">
+                        📅 Rencana Program Kerja Mingguan
                     </h3>
-                    <div style="display: flex; align-items: center; gap: var(--spacing-md);">
+                    <div style="display: flex; align-items: center; gap: 8px;">
                         <span id="rkap-week-label"
-                            style="font-size: 0.875rem; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.1); padding: 4px 12px; border-radius: 20px;"></span>
+                            style="font-size: 0.8rem; color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.12); padding: 5px 14px; border-radius: 20px; backdrop-filter: blur(4px); font-weight: 500;"></span>
                         <a href="../app-rkap/index.html#weekly" class="btn btn-secondary"
-                            style="background: rgba(255,255,255,0.2); border: none; color: white; font-size: 0.75rem;">
+                            style="background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.15); color: white; font-size: 0.75rem; border-radius: 20px; padding: 5px 14px; backdrop-filter: blur(4px);">
                             🚀 Kelola RKAP
                         </a>
                     </div>
@@ -341,16 +780,16 @@
 
             <!-- Summary Stats -->
             <div id="summaryStats" class="dashboard-grid"
-                style="grid-template-columns: repeat(6, 1fr); gap: var(--spacing-sm); margin-bottom: var(--spacing-lg);">
+                style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-xl);">
                 <!-- Will be rendered by JS -->
             </div>
 
 
             <!-- All Pekerjaan Table -->
-            <div class="pekerjaan-section">
+            <div class="pekerjaan-section" style="animation-delay: 0.15s;">
                 <div class="section-header">
                     <h3>📁 Semua Pekerjaan</h3>
-                    <div class="filter-bar" style="margin-bottom: 0;">
+                    <div class="filter-bar" style="margin-bottom: 0; gap: 8px;">
                         <select id="filterStatus" class="form-select">
                             <option value="">Semua Status</option>
                             <option value="survey">📍 Survey</option>
@@ -370,6 +809,11 @@
                     </div>
                 </div>
                 <div class="section-body">
+                    <div class="search-container">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchPekerjaan" placeholder="Cari nama pekerjaan atau lokasi..."
+                            oninput="DashboardApp.renderTable()">
+                    </div>
                     <table class="pekerjaan-table">
                         <thead>
                             <tr>
@@ -562,17 +1006,22 @@
                 let pekerjaan = Storage.get(Storage.KEYS.PEKERJAAN);
                 const pekerja = Storage.get(Storage.KEYS.PEKERJA);
 
-                console.log('Rendering Table. Total items:', pekerjaan.length);
-
                 // Apply filters
                 const filterStatus = document.getElementById('filterStatus').value;
                 const filterKategori = document.getElementById('filterKategori').value;
+                const searchText = (document.getElementById('searchPekerjaan')?.value || '').toLowerCase().trim();
 
                 if (filterStatus) {
                     pekerjaan = pekerjaan.filter(p => p.status === filterStatus);
                 }
                 if (filterKategori) {
                     pekerjaan = pekerjaan.filter(p => p.kategori === filterKategori);
+                }
+                if (searchText) {
+                    pekerjaan = pekerjaan.filter(p =>
+                        (p.namaPekerjaan || '').toLowerCase().includes(searchText) ||
+                        (p.lokasi || '').toLowerCase().includes(searchText)
+                    );
                 }
 
                 pekerjaan.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
@@ -667,16 +1116,18 @@
 
             renderMiniList(items, pekerja) {
                 if (items.length === 0) {
-                    return '<div class="empty-state"><span class="empty-icon">📋</span><p>Tidak ada data</p></div>';
+                    return '<div class="empty-state"><span class="empty-icon">📋</span><p style="font-size: 0.85rem;">Tidak ada data</p></div>';
                 }
 
-                return items.map(item => {
+                return items.map((item, idx) => {
                     const progress = this.calculateProgress(item);
+                    const colors = { sipil: '#3b82f6', perpipaan: '#10b981', pengawasan: '#a855f7' };
+                    const accentColor = colors[item.kategori] || 'var(--primary)';
                     return `
-                        <div style="padding: var(--spacing-md); border-bottom: 1px solid var(--border-color);">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-xs);">
-                                <strong style="font-size: 0.875rem;">${Utils.escapeHtml(item.namaPekerjaan)}</strong>
-                                <span class="workflow-status ${Utils.getWorkflowStatusColor(item.status)}" style="font-size: 0.7rem;">${Utils.getStatusDisplay(item.status)}</span>
+                        <div style="padding: 12px 14px; margin-bottom: 8px; background: rgba(15,23,42,0.4); border-radius: 10px; border-left: 3px solid ${accentColor}; transition: all 0.2s ease;" onmouseover="this.style.background='rgba(99,102,241,0.08)'" onmouseout="this.style.background='rgba(15,23,42,0.4)'">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <strong style="font-size: 0.83rem; color: var(--text-primary); line-height: 1.3;">${Utils.escapeHtml(item.namaPekerjaan)}</strong>
+                                <span class="workflow-status ${Utils.getWorkflowStatusColor(item.status)}" style="font-size: 0.68rem; flex-shrink: 0; margin-left: 8px;">${Utils.getStatusDisplay(item.status)}</span>
                             </div>
                             <div class="progress-mini">
                                 <div class="bar">
