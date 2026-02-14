@@ -1068,6 +1068,10 @@ const RkapApp = {
                             ${months.map(m => `<option value="${m}" ${currentMonth === m ? 'selected' : ''}>${m}</option>`).join('')}
                         </select>
                     </div>
+                    <button onclick="RkapApp.printWeeklyPlan()" class="flex items-center gap-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        Cetak Rencana
+                    </button>
                     <button onclick="RkapApp.exportWeeklyExcel()" class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
                         <i data-lucide="download" class="w-4 h-4"></i>
                         Export
@@ -1596,7 +1600,332 @@ const RkapApp = {
         Toast.show('Excel Mingguan Detail berhasil diunduh', 'success');
     },
 
+    printWeeklyPlan() {
+        const currentMonth = this.state.filters.month || 'Januari';
+        const branch = this.state.filters.branch;
+        const year = '2026';
+        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+
+        // Get selected programs for current month
+        const selected = (this.masterData || []).filter(p => {
+            const isSelected = this.state.selectedItems.has(p.description);
+            const hasMonthAllocation = (p.monthly && (p.monthly[currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()] || 0) > 0);
+            const matchesBranch = !branch || p.branch === branch;
+            return isSelected && hasMonthAllocation && matchesBranch;
+        });
+
+        if (selected.length === 0) {
+            Toast.show('Tidak ada data untuk dicetak', 'warning');
+            return;
+        }
+
+        // Generate print-friendly HTML
+        const now = new Date();
+        const printDate = now.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
+        const printTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+        let printHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Laporan Rencana Kegiatan Mingguan - ${currentMonth} ${year}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        @page {
+            size: A4 landscape;
+            margin: 1.5cm 1cm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            font-size: 9px;
+            color: #000;
+            background: white;
+        }
+        
+        .print-report {
+            width: 100%;
+            background: white;
+        }
+        
+        .print-header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #000;
+        }
+        
+        .print-header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+        
+        .print-header .subtitle {
+            font-size: 12px;
+            margin: 3px 0;
+            color: #333;
+        }
+        
+        .print-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 10px;
+        }
+        
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .print-table th,
+        .print-table td {
+            border: 1px solid #333;
+            padding: 6px 4px;
+            text-align: left;
+            vertical-align: top;
+        }
+        
+        .print-table thead th {
+            background-color: #e5e7eb;
+            font-weight: 700;
+            text-align: center;
+            font-size: 9px;
+        }
+        
+        .print-table .col-no {
+            width: 3%;
+            text-align: center;
+        }
+        
+        .print-table .col-program {
+            width: 20%;
+        }
+        
+        .print-table .col-cabang {
+            width: 8%;
+            font-size: 8px;
+        }
+        
+        .print-table .col-week {
+            width: 17.25%;
+        }
+        
+        .branch-header {
+            background-color: #f3f4f6;
+            font-weight: 700;
+            font-size: 10px;
+        }
+        
+        .week-content {
+            font-size: 8px;
+            line-height: 1.4;
+        }
+        
+        .week-date {
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #1e40af;
+        }
+        
+        .week-personnel {
+            margin: 2px 0;
+            padding-left: 8px;
+        }
+        
+        .personnel-label {
+            font-weight: 600;
+            display: inline-block;
+            min-width: 50px;
+        }
+        
+        .print-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid #333;
+            font-size: 9px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .print-table tr {
+            page-break-inside: avoid;
+        }
+        
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="print-report">
+        <div class="print-header">
+            <h1>Laporan Rencana Kegiatan Mingguan</h1>
+            <div class="subtitle">Periode: ${currentMonth} ${year}</div>
+            ${branch ? `<div class="subtitle">Cabang: ${branch}</div>` : ''}
+        </div>
+        
+        <div class="print-info">
+            <div>Tanggal Cetak: ${printDate} ${printTime}</div>
+            <div>Total Program: ${selected.length}</div>
+        </div>
+        
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th class="col-no">No</th>
+                    <th class="col-program">Program Kerja</th>
+                    <th class="col-cabang">Cabang</th>
+                    <th class="col-week">Minggu 1</th>
+                    <th class="col-week">Minggu 2</th>
+                    <th class="col-week">Minggu 3</th>
+                    <th class="col-week">Minggu 4</th>
+                </tr>
+            </thead>
+            <tbody>
+        `;
+
+        // Group by branch
+        const grouped = {};
+        selected.forEach(prog => {
+            const branchName = prog.branch || 'TANPA CABANG';
+            if (!grouped[branchName]) grouped[branchName] = [];
+            grouped[branchName].push(prog);
+        });
+
+        const sortedBranches = Object.keys(grouped).sort();
+        let globalIndex = 0;
+
+        sortedBranches.forEach(branchName => {
+            const programs = grouped[branchName];
+
+            // Branch header row
+            printHTML += `
+                <tr class="branch-header">
+                    <td colspan="7" style="padding: 8px;">${branchName} (${programs.length} program)</td>
+                </tr>
+            `;
+
+            programs.forEach(prog => {
+                globalIndex++;
+                const sanitizedProgDesc = this.sanitizeFirebaseKey(prog.description);
+
+                printHTML += `
+                <tr>
+                    <td class="col-no">${globalIndex}</td>
+                    <td class="col-program">
+                        <strong>${prog.description}</strong><br>
+                        <span style="color: #666; font-size: 7px;">${prog.code || '-'}</span>
+                    </td>
+                    <td class="col-cabang">${prog.branch || '-'}</td>
+                `;
+
+                // Add week columns (W1-W4)
+                for (let week = 1; week <= 4; week++) {
+                    const weekKey = `W${week}`;
+                    const weekData = this.state.weeklyPlans[monthKey]?.[sanitizedProgDesc]?.[weekKey] || {};
+                    const hasData = weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER;
+
+                    printHTML += `<td class="col-week">`;
+
+                    if (hasData) {
+                        printHTML += `<div class="week-content">`;
+
+                        if (weekData.SURVEY_DATE) {
+                            const surveyDate = new Date(weekData.SURVEY_DATE);
+                            const formattedDate = surveyDate.toLocaleDateString('id-ID', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric'
+                            });
+                            printHTML += `<div class="week-date">📅 ${formattedDate}</div>`;
+                        }
+
+                        if (weekData.SURVEYOR_1) {
+                            printHTML += `<div class="week-personnel"><span class="personnel-label">Surveyor 1:</span> ${weekData.SURVEYOR_1}</div>`;
+                        }
+
+                        if (weekData.SURVEYOR_2) {
+                            printHTML += `<div class="week-personnel"><span class="personnel-label">Surveyor 2:</span> ${weekData.SURVEYOR_2}</div>`;
+                        }
+
+                        if (weekData.DRAFTER) {
+                            printHTML += `<div class="week-personnel"><span class="personnel-label">Drafter:</span> ${weekData.DRAFTER}</div>`;
+                        }
+
+                        if (weekData.ESTIMATOR) {
+                            printHTML += `<div class="week-personnel"><span class="personnel-label">Estimator:</span> ${weekData.ESTIMATOR}</div>`;
+                        }
+
+                        if (weekData.MONEV) {
+                            printHTML += `<div class="week-personnel"><span class="personnel-label">Monev:</span> ${weekData.MONEV}</div>`;
+                        }
+
+                        printHTML += `</div>`;
+                    } else {
+                        printHTML += `<div style="text-align: center; color: #999; font-size: 8px; padding: 10px;">- Belum dijadwalkan -</div>`;
+                    }
+
+                    printHTML += `</td>`;
+                }
+
+                printHTML += `</tr>`;
+            });
+        });
+
+        printHTML += `
+            </tbody>
+        </table>
+        
+        <div class="print-footer">
+            <div>
+                <strong>Keterangan:</strong><br>
+                Laporan ini dicetak otomatis dari sistem RKAP 2026
+            </div>
+            <div style="text-align: right;">
+                <div style="margin-top: 40px; border-top: 1px solid #000; padding-top: 5px; min-width: 150px;">
+                    Mengetahui,
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        window.onload = function() {
+            window.print();
+            // Close window after printing (optional)
+            // setTimeout(() => window.close(), 100);
+        };
+    </script>
+</body>
+</html>
+        `;
+
+        // Open print window
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        if (printWindow) {
+            printWindow.document.write(printHTML);
+            printWindow.document.close();
+        } else {
+            Toast.show('Gagal membuka jendela cetak. Pastikan pop-up tidak diblokir.', 'error');
+        }
+    },
+
     // handleDailyFilterChange is defined below (near renderDaily)
+
 
     renderDaily() {
         // Refactored for read-only personnel grid
