@@ -1491,3 +1491,185 @@ body {
     color: var(--primary);
     font-weight: 500;
 }
+
+/* ============================================
+   MOBILE RESPONSIVENESS - INPUT APP
+   ============================================ */
+
+/* Ensure minimum touch targets */
+button,
+.nav-link,
+.btn,
+input[type="button"],
+input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Header adjustments for mobile */
+.header {
+    padding: 1rem;
+    gap: 0.75rem;
+}
+
+.header h1 {
+    font-size: 1.1rem;
+}
+
+.header-controls {
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* User grid - responsive */
+.user-grid {
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+@media (max-width: 600px) {
+    .user-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Container padding */
+.container {
+    padding: 1rem;
+}
+
+/* Content max-width */
+.content {
+    max-width: 100%;
+}
+
+/* Section title */
+.section-title {
+    font-size: 1.1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+/* Buttons - ensure touch-friendly */
+.btn {
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+}
+
+.btn-primary {
+    font-size: 1rem;
+}
+
+/* Modal full screen on mobile */
+.modal-overlay {
+    padding: 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+}
+
+.modal {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+
+.modal .modal-header,
+.modal .modal-body,
+.modal .modal-footer {
+    padding: 1rem;
+}
+
+.modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    backdrop-filter: blur(8px);
+}
+
+/* Form elements - touch friendly */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+select,
+textarea {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    font-size: 16px;
+    /* Prevents zoom on iOS */
+}
+
+/* Toast positioning */
+.toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+}
+
+/* Make all tables responsive by default */
+table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Tables - responsive with horizontal scroll */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+}
+
+/* Typography scaling */
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+
+    body {
+        line-height: 1.5;
+    }
+
+    .container {
+        padding: 0.75rem;
+    }
+
+    .header {
+        padding: 0.75rem;
+    }
+
+    .section-title {
+        font-size: 1rem;
+    }
+
+    .user-card {
+        padding: 1rem;
+    }
+
+    .user-avatar {
+        width: 50px;
+        height: 50px;
+        font-size: 1rem;
+    }
+
+    .user-name {
+        font-size: 0.8rem;
+    }
+
+    .user-role {
+        font-size: 0.65rem;
+    }
+}
+
+/* Ensure proper viewport on mobile */
+@supports (height: 100dvh) {
+    .container {
+        min-height: 100dvh;
+    }
+}

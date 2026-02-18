@@ -163,6 +163,361 @@ header {
     background: #475569;
 }
 
+/* ============================================
+   MOBILE RESPONSIVENESS - RKAP APP
+   ============================================ */
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 20;
+    width: 44px;
+    height: 44px;
+    background: var(--rkap-primary);
+    border: none;
+    border-radius: 0.5rem;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    transition: all 0.2s ease;
+    align-items: center;
+    justify-content: center;
+}
+
+.mobile-menu-toggle:hover {
+    background: var(--rkap-primary-hover);
+    transform: scale(1.05);
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Mobile Sidebar Overlay */
+#sidebarOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+    z-index: 10;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#sidebarOverlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Mobile Sidebar Behavior */
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: flex;
+    }
+
+    #sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #sidebar.open {
+        transform: translateX(0);
+    }
+
+    /* Adjust main content for mobile */
+    main {
+        margin-left: 0 !important;
+        padding: 4rem 1rem 1rem !important;
+        width: 100% !important;
+    }
+
+    /* Header adjustments */
+    header {
+        margin: -1rem -1rem 1rem -1rem !important;
+        padding: 1rem !important;
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 0.75rem;
+    }
+
+    header .flex.items-center.gap-4 {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Reduce header button sizes for mobile */
+    header button {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.875rem !important;
+    }
+
+    header button span:not(.w-2\.5) {
+        display: none;
+    }
+
+    /* Sidebar navigation items - larger touch targets */
+    #sidebar .nav-item {
+        margin: 0.25rem 0.5rem;
+    }
+
+    #sidebar .nav-link {
+        padding: 0.75rem 1rem;
+        min-height: 44px;
+        align-items: center;
+    }
+
+    #sidebar .nav-link i {
+        min-width: 20px;
+    }
+
+    /* Sidebar rekap cards - smaller on mobile */
+    #sidebar-rekap {
+        padding: 0.75rem 0.5rem;
+    }
+
+    #sidebar-rekap .text-2xl {
+        font-size: 1.25rem;
+    }
+
+    #sidebar-rekap .text-lg {
+        font-size: 1rem;
+    }
+
+    /* Hide logo text on very small screens if needed */
+    #sidebar .p-8 {
+        padding: 1rem;
+    }
+
+    #sidebar h1 {
+        font-size: 1rem;
+    }
+
+    /* Modal full screen on mobile */
+    #modalOverlay {
+        padding: 0 !important;
+        align-items: flex-start !important;
+    }
+
+    #modal {
+        max-width: 100% !important;
+        max-height: 100% !important;
+        width: 100% !important;
+        height: 100% !important;
+        border-radius: 0 !important;
+        margin: 0 !important;
+    }
+
+    #modal .p-6 {
+        padding: 1rem !important;
+    }
+
+    #modalFooter {
+        position: sticky;
+        bottom: 0;
+        background: var(--rkap-card-bg);
+        backdrop-filter: blur(8px);
+    }
+
+    /* Tables - horizontal scroll */
+    .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin: 0 -1rem;
+        padding: 0 1rem;
+    }
+
+    /* Make all tables responsive by default */
+    table {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Grid adjustments */
+    .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: 1fr;
+    }
+
+    /* Stat cards responsive */
+    .stat-card-large {
+        padding: 1rem;
+        min-height: 80px;
+    }
+
+    .stat-card-large .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+    }
+
+    .stat-card-large .stat-value {
+        font-size: 1.25rem;
+    }
+
+    .stat-card-large .stat-label {
+        font-size: 0.7rem;
+    }
+
+    /* Workflow stages scrollable */
+    .workflow-overview {
+        gap: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .workflow-stage {
+        min-width: 100px;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .workflow-stage .stage-name {
+        font-size: 0.6rem;
+    }
+
+    .workflow-stage .stage-count {
+        font-size: 0.9rem;
+    }
+
+    /* Search and filter bar */
+    .search-container input {
+        padding: 0.75rem 1rem 0.75rem 2.5rem;
+        font-size: 1rem;
+    }
+
+    .filter-bar .form-select {
+        padding: 0.5rem 2rem 0.5rem 0.75rem;
+        font-size: 0.875rem;
+        min-width: 120px;
+    }
+
+    /* Buttons - ensure minimum touch target */
+    .btn-rkap-primary,
+    button,
+    .nav-link {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Reduce padding on cards */
+    .card-premium {
+        padding: 1rem;
+    }
+
+    .section-header {
+        padding: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .section-header h3 {
+        font-size: 1rem;
+    }
+
+    /* Typography scaling */
+    body {
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    h1,
+    h2,
+    h3 {
+        line-height: 1.3;
+    }
+
+    /* Ensure inputs are touch-friendly */
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+        padding: 0.75rem 1rem;
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+    }
+
+    /* Toast positioning */
+    .toast-container {
+        left: 1rem;
+        right: 1rem;
+        bottom: 1rem;
+    }
+
+    .toast-modern {
+        max-width: 100%;
+    }
+}
+
+/* Extra small devices (phones, 320px - 480px) */
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+
+    .mobile-menu-toggle {
+        top: 0.5rem;
+        left: 0.5rem;
+        width: 40px;
+        height: 40px;
+    }
+
+    main {
+        padding: 3.5rem 0.75rem 0.75rem !important;
+    }
+
+    header {
+        padding: 0.75rem !important;
+    }
+
+    .page-title {
+        font-size: 1.25rem;
+    }
+
+    #sidebar .p-8 {
+        padding: 0.75rem;
+    }
+
+    #sidebar h1 {
+        font-size: 0.875rem;
+    }
+
+    #sidebar .nav-link {
+        padding: 0.625rem 0.75rem;
+    }
+
+    #sidebar-recap .p-3 {
+        padding: 0.5rem;
+    }
+
+    #sidebar-recap .text-2xl {
+        font-size: 1.125rem;
+    }
+
+    /* Hide less important header elements */
+    #lastSyncTime {
+        display: none;
+    }
+
+    /* Stack buttons on small screens */
+    header .flex.items-center.gap-4 {
+        flex-wrap: wrap;
+    }
+}
+
+/* Large tablets and small desktops */
+@media (min-width: 769px) and (max-width: 1024px) {
+    main {
+        padding: 2rem;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* ========================================
    PRINT STYLES - WEEKLY SCHEDULE
    ======================================== */

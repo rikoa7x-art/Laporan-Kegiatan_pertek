@@ -596,6 +596,17 @@
 
             const today = Utils.formatDateInput(new Date());
 
+            // --- Baca daftar program dari RKAP (data sudah disync dari Firebase ke Storage) ---
+            const rkapState = Storage.get(Storage.KEYS.RKAP, true);
+            let rkapPrograms = [];
+            if (rkapState && rkapState.selectedItems) {
+                const items = rkapState.selectedItems;
+                rkapPrograms = Array.isArray(items) ? items : Array.from(items);
+            }
+            const rkapDropdownOptions = rkapPrograms.length > 0
+                ? rkapPrograms.map(desc => `<option value="${Utils.escapeHtml(desc)}">${Utils.escapeHtml(desc)}</option>`).join('')
+                : '';
+
             const content = `
                 <form id="formPekerjaan">
                     <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
@@ -617,8 +628,17 @@
                     <!-- Section untuk pekerjaan baru (sipil/perpipaan) -->
                     <div id="sectionNewPekerjaan">
                         <div class="form-group">
-                            <label class="form-label">Nama Pekerjaan</label>
-                            <input type="text" name="namaPekerjaan" class="form-input" placeholder="Contoh: Pembangunan Gedung Kantor">
+                            <label class="form-label">Jenis Pekerjaan</label>
+                            <select id="selectJenisPekerjaan" class="form-select" style="margin-bottom: 8px;">
+                                <option value="">-- Pilih dari Rencana Bulanan RKAP --</option>
+                                ${rkapDropdownOptions}
+                                <option value="__manual__">✏️ Input Manual...</option>
+                            </select>
+                            <input type="text" name="namaPekerjaan" id="inputNamaManual" class="form-input"
+                                   style="display:none; margin-top: 4px;"
+                                   placeholder="Ketik nama pekerjaan..."
+                                   ${rkapPrograms.length === 0 ? '' : ''}>
+                            ${rkapPrograms.length === 0 ? '<p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">⚠️ Belum ada data RKAP. Pilih "Input Manual" atau sync data RKAP terlebih dahulu.</p>' : ''}
                         </div>
 
                         <div class="form-group">
@@ -712,11 +732,33 @@
                     const labelTanggal = document.getElementById('labelTanggal');
                     const labelTim = document.getElementById('labelTim');
                     const labelCatatan = document.getElementById('labelCatatan');
-                    const inputNama = document.querySelector('input[name="namaPekerjaan"]');
+                    const inputNama = document.getElementById('inputNamaManual');
+                    const selectJenis = document.getElementById('selectJenisPekerjaan');
                     const selectLokasi = document.querySelector('select[name="lokasi"]');
 
                     // Store uploaded photos for pengawasan
                     window._uploadedFotos = [];
+
+                    // --- Toggle antara dropdown RKAP dan input manual ---
+                    function toggleNamaInput(val) {
+                        if (val === '__manual__') {
+                            inputNama.style.display = 'block';
+                            inputNama.value = '';
+                            inputNama.focus();
+                        } else {
+                            inputNama.style.display = 'none';
+                            inputNama.value = val; // isi dengan nilai dropdown
+                        }
+                    }
+
+                    // Jika tidak ada opsi RKAP, langsung tampilkan input manual
+                    if (selectJenis) {
+                        if (selectJenis.options.length <= 2) { // hanya "-- Pilih --" dan "Input Manual"
+                            selectJenis.value = '__manual__';
+                            toggleNamaInput('__manual__');
+                        }
+                        selectJenis.addEventListener('change', () => toggleNamaInput(selectJenis.value));
+                    }
 
                     // Handle foto upload for pengawasan
                     const fotoInput = document.getElementById('fotoPengawasan');
@@ -781,10 +823,8 @@
 
                         // Toggle required attributes
                         if (isPengawasan) {
-                            inputNama.removeAttribute('required');
                             selectLokasi.removeAttribute('required');
                         } else {
-                            inputNama.setAttribute('required', 'required');
                             selectLokasi.setAttribute('required', 'required');
                         }
                     });
@@ -879,8 +919,18 @@
 
                     } else {
                         // Mode normal - buat pekerjaan baru
-                        if (!data.namaPekerjaan || !data.namaPekerjaan.trim()) {
-                            Toast.show('Nama pekerjaan harus diisi', 'error');
+                        // Ambil nama pekerjaan: dari dropdown RKAP atau input manual
+                        const selectJenis = document.getElementById('selectJenisPekerjaan');
+                        const inputManual = document.getElementById('inputNamaManual');
+                        let namaPekerjaan = '';
+                        if (selectJenis && selectJenis.value && selectJenis.value !== '__manual__') {
+                            namaPekerjaan = selectJenis.value.trim();
+                        } else if (inputManual) {
+                            namaPekerjaan = (inputManual.value || '').trim();
+                        }
+
+                        if (!namaPekerjaan) {
+                            Toast.show('Nama / jenis pekerjaan harus diisi', 'error');
                             return false;
                         }
 
@@ -902,7 +952,7 @@
 
                         // Create pekerjaan
                         const pekerjaan = {
-                            namaPekerjaan: data.namaPekerjaan.trim(),
+                            namaPekerjaan: namaPekerjaan,
                             kategori: data.kategori,
                             lokasi: (data.lokasi || '').trim(),
                             status: 'survey',

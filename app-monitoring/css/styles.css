@@ -1501,3 +1501,226 @@ body {
     color: var(--primary);
     font-weight: 500;
 }
+
+/* ============================================
+   MOBILE RESPONSIVENESS - MONITORING APP
+   ============================================ */
+
+/* Ensure minimum touch targets */
+button,
+.nav-link,
+.btn,
+input[type="button"],
+input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Header adjustments for mobile */
+.dashboard-app-header {
+    padding: 1rem;
+    gap: 0.75rem;
+    top: 8px;
+}
+
+.dashboard-app-header h1 {
+    font-size: 1.1rem;
+}
+
+.header-controls {
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.nav-link-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+}
+
+/* Dashboard grid - responsive */
+.dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+@media (min-width: 640px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    }
+}
+
+/* Stat cards responsive */
+.stat-card-large {
+    padding: 1rem;
+    min-height: 80px;
+}
+
+.stat-card-large .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.25rem;
+}
+
+.stat-card-large .stat-value {
+    font-size: 1.25rem;
+}
+
+.stat-card-large .stat-label {
+    font-size: 0.7rem;
+}
+
+/* Workflow overview - horizontal scroll on mobile */
+.workflow-overview {
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.workflow-stage {
+    min-width: 100px;
+    padding: 0.5rem 0.75rem;
+}
+
+.workflow-stage .stage-name {
+    font-size: 0.6rem;
+}
+
+.workflow-stage .stage-count {
+    font-size: 0.9rem;
+}
+
+.workflow-stage::after {
+    right: -10px;
+    font-size: 0.8rem;
+}
+
+/* Section headers */
+.section-header {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.section-header h3 {
+    font-size: 1rem;
+}
+
+/* Search and filter */
+.search-container input {
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    font-size: 1rem;
+}
+
+.filter-bar .form-select {
+    padding: 0.5rem 2rem 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    min-width: 120px;
+}
+
+/* Tables - responsive with horizontal scroll */
+.table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -1rem;
+    padding: 0 1rem;
+}
+
+.pekerjaan-table {
+    min-width: 600px;
+}
+
+/* Modal full screen on mobile */
+.modal-overlay {
+    padding: 0 !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+}
+
+.modal {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+}
+
+.modal .modal-header,
+.modal .modal-body,
+.modal .modal-footer {
+    padding: 1rem;
+}
+
+.modal-footer {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-card);
+    backdrop-filter: blur(8px);
+}
+
+/* Form elements - touch friendly */
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="password"],
+select,
+textarea {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
+    font-size: 16px;
+    /* Prevents zoom on iOS */
+}
+
+/* Toast positioning */
+.toast-container {
+    left: 1rem;
+    right: 1rem;
+    bottom: 1rem;
+}
+
+/* Make all tables responsive by default */
+table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Typography scaling */
+@media (max-width: 480px) {
+    html {
+        font-size: 14px;
+    }
+
+    body {
+        line-height: 1.5;
+    }
+
+    .dashboard-app-container {
+        padding: 1rem;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+
+    /* Hide less important elements on very small screens */
+    .header-controls .text-xs {
+        display: none;
+    }
+}
+
+/* Ensure proper viewport on mobile */
+@supports (height: 100dvh) {
+    .dashboard-app-container {
+        min-height: 100dvh;
+    }
+}

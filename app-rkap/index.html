@@ -38,6 +38,14 @@
 </head>
 
 <body class="bg-slate-900 text-slate-100 flex min-h-screen">
+    <!-- Mobile Menu Toggle (visible only on mobile) -->
+    <button id="mobileMenuToggle" class="mobile-menu-toggle fixed top-4 left-4 z-20 md:hidden">
+        <i data-lucide="menu" class="w-6 h-6"></i>
+    </button>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-10 hidden md:hidden"></div>
+
     <!-- Sidebar -->
     <aside class="w-64 flex flex-col fixed h-full z-10" id="sidebar">
         <div class="p-8 flex items-center gap-3">

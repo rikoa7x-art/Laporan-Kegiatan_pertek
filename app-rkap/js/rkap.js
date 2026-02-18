@@ -100,6 +100,9 @@ const RkapApp = {
         // Check for hash to load correct view
         const hash = window.location.hash.slice(1) || 'dashboard';
         this.navigateTo(hash);
+
+        // Initialize mobile menu toggle
+        this.initMobileMenu();
     },
 
     setupNavigation() {
@@ -115,6 +118,55 @@ const RkapApp = {
         window.addEventListener('hashchange', () => {
             const hash = window.location.hash.slice(1) || 'dashboard';
             this.navigateTo(hash);
+        });
+    },
+
+    initMobileMenu() {
+        const mobileToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        if (!mobileToggle || !sidebar || !overlay) {
+            return; // Mobile elements not present
+        }
+
+        const toggleMenu = () => {
+            const isOpen = sidebar.classList.contains('open');
+            if (isOpen) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+        };
+
+        mobileToggle.addEventListener('click', toggleMenu);
+        overlay.addEventListener('click', toggleMenu);
+
+        // Close menu when clicking on nav items
+        sidebar.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    toggleMenu();
+                }
+            });
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                toggleMenu();
+            }
+        });
+
+        // Handle window resize - close menu if switching to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768 && sidebar.classList.contains('open')) {
+                toggleMenu();
+            }
         });
     },
 
