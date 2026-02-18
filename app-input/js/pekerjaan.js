@@ -293,7 +293,7 @@ const Pekerjaan = {
                             pelaksana: selectedSurveyors,
                             tanggalMulai: data.tanggalSurvey,
                             tanggalSelesai: null,
-                            catatan: data.catatan.trim(),
+                            catatan: (data.catatan || '').trim(),
                             dokumen: []
                         }
                     ]

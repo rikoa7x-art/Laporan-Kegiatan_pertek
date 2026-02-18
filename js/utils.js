@@ -87,8 +87,10 @@ const Utils = {
             startDate.setMonth(month);
         }
         if (endDate.getMonth() !== month) {
-            endDate.setDate(0);
+            // Set to last day of the target month: day=0 of month+1 = last day of month
+            endDate.setFullYear(parseInt(year));
             endDate.setMonth(month + 1);
+            endDate.setDate(0);
         }
 
         return { start: startDate, end: endDate };

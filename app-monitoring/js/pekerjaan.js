@@ -297,7 +297,7 @@ const Pekerjaan = {
                             pelaksana: selectedSurveyors,
                             tanggalMulai: data.tanggalSurvey,
                             tanggalSelesai: null,
-                            catatan: data.catatan.trim(),
+                            catatan: (data.catatan || '').trim(),
                             dokumen: []
                         }
                     ]
@@ -584,7 +584,7 @@ const Pekerjaan = {
             if (!pekerjaan.dokumen) pekerjaan.dokumen = [];
 
             pekerjaan.dokumen.push({
-                id: Utils.generateId(),
+                id: Storage.generateId(),
                 name: file.name,
                 type: file.type,
                 size: file.size,
@@ -637,7 +637,7 @@ const Pekerjaan = {
             if (!tahap.dokumen) tahap.dokumen = [];
 
             tahap.dokumen.push({
-                id: Utils.generateId(),
+                id: Storage.generateId(),
                 name: file.name,
                 type: file.type,
                 size: file.size,
