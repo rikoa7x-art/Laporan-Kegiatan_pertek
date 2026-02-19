@@ -604,19 +604,22 @@
                 rkapPrograms = Array.isArray(items) ? items : Array.from(items);
             }
 
-            // Filter: exclude RKAP items yang sudah dipakai sebagai pekerjaan
-            // Prioritas: cek field rkapItem (referensi eksplisit) → fallback ke namaPekerjaan
+            // Filter: exclude RKAP items yang sudah dipakai
+            // Gunakan 3 sumber filter (dari yang paling andal):
+            // 1. pertek_used_rkap - localStorage lokal, tidak pernah ditimpa Firebase pull
+            // 2. rkapItem - field eksplisit di pekerjaan (jika ada)
+            // 3. namaPekerjaan - fallback backward compat
+            const _localUsed = JSON.parse(localStorage.getItem('pertek_used_rkap') || '[]');
+            const usedLocal = new Set(_localUsed.map(s => s.trim().toLowerCase()));
             const usedRkapItems = new Set(
-                existingPekerjaan
-                    .filter(p => p.rkapItem)
-                    .map(p => p.rkapItem.trim().toLowerCase())
+                existingPekerjaan.filter(p => p.rkapItem).map(p => p.rkapItem.trim().toLowerCase())
             );
             const usedNames = new Set(
                 existingPekerjaan.map(p => p.namaPekerjaan.trim().toLowerCase())
             );
             rkapPrograms = rkapPrograms.filter(desc => {
                 const d = desc.trim().toLowerCase();
-                return !usedRkapItems.has(d) && !usedNames.has(d);
+                return !usedLocal.has(d) && !usedRkapItems.has(d) && !usedNames.has(d);
             });
 
             const rkapDropdownOptions = rkapPrograms.length > 0
@@ -997,6 +1000,17 @@
                         };
 
                         Storage.add(Storage.KEYS.PEKERJAAN, pekerjaan);
+
+                        // Tandai RKAP item ini sudah digunakan di localStorage lokal
+                        // (terpisah dari Firebase agar tidak ditimpa saat pull)
+                        if (rkapItem) {
+                            const _used = JSON.parse(localStorage.getItem('pertek_used_rkap') || '[]');
+                            if (!_used.map(s => s.toLowerCase()).includes(rkapItem.toLowerCase())) {
+                                _used.push(rkapItem);
+                                localStorage.setItem('pertek_used_rkap', JSON.stringify(_used));
+                            }
+                        }
+
                         Toast.show('Pekerjaan berhasil dibuat!', 'success');
                     }
 
