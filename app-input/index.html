@@ -604,12 +604,20 @@
                 rkapPrograms = Array.isArray(items) ? items : Array.from(items);
             }
 
-            // Filter: exclude RKAP items that are already used as a pekerjaan name
-            // (case-insensitive comparison to handle minor casing differences)
+            // Filter: exclude RKAP items yang sudah dipakai sebagai pekerjaan
+            // Prioritas: cek field rkapItem (referensi eksplisit) → fallback ke namaPekerjaan
+            const usedRkapItems = new Set(
+                existingPekerjaan
+                    .filter(p => p.rkapItem)
+                    .map(p => p.rkapItem.trim().toLowerCase())
+            );
             const usedNames = new Set(
                 existingPekerjaan.map(p => p.namaPekerjaan.trim().toLowerCase())
             );
-            rkapPrograms = rkapPrograms.filter(desc => !usedNames.has(desc.trim().toLowerCase()));
+            rkapPrograms = rkapPrograms.filter(desc => {
+                const d = desc.trim().toLowerCase();
+                return !usedRkapItems.has(d) && !usedNames.has(d);
+            });
 
             const rkapDropdownOptions = rkapPrograms.length > 0
                 ? rkapPrograms.map(desc => `<option value="${Utils.escapeHtml(desc)}">${Utils.escapeHtml(desc)}</option>`).join('')
@@ -942,8 +950,10 @@
                         const selectJenis = document.getElementById('selectJenisPekerjaan');
                         const inputManual = document.getElementById('inputNamaManual');
                         let namaPekerjaan = '';
+                        let rkapItem = null; // referensi ke program RKAP yang dipakai
                         if (selectJenis && selectJenis.value && selectJenis.value !== '__manual__') {
                             namaPekerjaan = selectJenis.value.trim();
+                            rkapItem = namaPekerjaan; // simpan referensi eksplisit
                         } else if (inputManual) {
                             namaPekerjaan = (inputManual.value || '').trim();
                         }
@@ -975,6 +985,7 @@
                             kategori: data.kategori,
                             lokasi: (data.lokasi || '').trim(),
                             status: 'survey',
+                            ...(rkapItem ? { rkapItem } : {}), // referensi ke program RKAP
                             tahapan: [{
                                 status: 'survey',
                                 pelaksana: selectedSurveyors,
