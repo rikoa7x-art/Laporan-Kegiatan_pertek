@@ -622,6 +622,12 @@
                 return !usedLocal.has(d) && !usedRkapItems.has(d) && !usedNames.has(d);
             });
 
+            // DEBUG - hapus setelah masalah ditemukan
+            console.log('[DEBUG showInputForm] rkapState.selectedItems:', JSON.stringify(rkapState && rkapState.selectedItems));
+            console.log('[DEBUG showInputForm] existingPekerjaan names:', existingPekerjaan.map(p => p.namaPekerjaan));
+            console.log('[DEBUG showInputForm] usedNames:', [...usedNames]);
+            console.log('[DEBUG showInputForm] rkapPrograms after filter:', rkapPrograms);
+
             const rkapDropdownOptions = rkapPrograms.length > 0
                 ? rkapPrograms.map(desc => `<option value="${Utils.escapeHtml(desc)}">${Utils.escapeHtml(desc)}</option>`).join('')
                 : '';
