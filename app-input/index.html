@@ -606,11 +606,11 @@
 
             // Filter: exclude RKAP items yang sudah dipakai
             // Gunakan 3 sumber filter (dari yang paling andal):
-            // 1. pertek_used_rkap - localStorage lokal, tidak pernah ditimpa Firebase pull
-            // 2. rkapItem - field eksplisit di pekerjaan (jika ada)
+            // 1. pertek_used_rkap - disync via Firebase ke semua perangkat
+            // 2. rkapItem - field eksplisit di pekerjaan
             // 3. namaPekerjaan - fallback backward compat
-            const _localUsed = JSON.parse(localStorage.getItem('pertek_used_rkap') || '[]');
-            const usedLocal = new Set(_localUsed.map(s => s.trim().toLowerCase()));
+            const _syncedUsed = Storage.get('pertek_used_rkap'); // array string, sync via Firebase
+            const usedLocal = new Set(_syncedUsed.map(s => (typeof s === 'string' ? s : (s.nama || '')).trim().toLowerCase()));
             const usedRkapItems = new Set(
                 existingPekerjaan.filter(p => p.rkapItem).map(p => p.rkapItem.trim().toLowerCase())
             );
@@ -1001,13 +1001,17 @@
 
                         Storage.add(Storage.KEYS.PEKERJAAN, pekerjaan);
 
-                        // Tandai RKAP item ini sudah digunakan di localStorage lokal
-                        // (terpisah dari Firebase agar tidak ditimpa saat pull)
+                        // Tandai RKAP item ini sudah digunakan → sync ke Firebase
+                        // agar semua perangkat (HP, PC lain) juga tau item ini sudah dipakai
                         if (rkapItem) {
-                            const _used = JSON.parse(localStorage.getItem('pertek_used_rkap') || '[]');
-                            if (!_used.map(s => s.toLowerCase()).includes(rkapItem.toLowerCase())) {
+                            const _used = Storage.get('pertek_used_rkap');
+                            const desc_lc = rkapItem.toLowerCase();
+                            const alreadyTracked = _used.some(s =>
+                                (typeof s === 'string' ? s : (s.nama || '')).toLowerCase() === desc_lc
+                            );
+                            if (!alreadyTracked) {
                                 _used.push(rkapItem);
-                                localStorage.setItem('pertek_used_rkap', JSON.stringify(_used));
+                                Storage.set('pertek_used_rkap', _used); // push ke Firebase otomatis
                             }
                         }
 
