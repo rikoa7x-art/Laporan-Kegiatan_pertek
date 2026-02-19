@@ -1001,17 +1001,24 @@
 
                         Storage.add(Storage.KEYS.PEKERJAAN, pekerjaan);
 
-                        // Tandai RKAP item ini sudah digunakan → sync ke Firebase
-                        // agar semua perangkat (HP, PC lain) juga tau item ini sudah dipakai
+                        // Hapus item RKAP dari sumbernya (pertek_rkap.selectedItems)
+                        // → Firebase akan sync ke semua perangkat secara otomatis
                         if (rkapItem) {
-                            const _used = Storage.get('pertek_used_rkap');
-                            const desc_lc = rkapItem.toLowerCase();
-                            const alreadyTracked = _used.some(s =>
-                                (typeof s === 'string' ? s : (s.nama || '')).toLowerCase() === desc_lc
-                            );
-                            if (!alreadyTracked) {
-                                _used.push(rkapItem);
-                                Storage.set('pertek_used_rkap', _used); // push ke Firebase otomatis
+                            const rkapState = Storage.get(Storage.KEYS.RKAP, true);
+                            if (rkapState && rkapState.selectedItems) {
+                                let items = Array.isArray(rkapState.selectedItems)
+                                    ? [...rkapState.selectedItems]
+                                    : Object.values(rkapState.selectedItems);
+
+                                const rkapItem_lc = rkapItem.trim().toLowerCase();
+                                items = items.filter(s =>
+                                    typeof s === 'string'
+                                        ? s.trim().toLowerCase() !== rkapItem_lc
+                                        : true
+                                );
+
+                                rkapState.selectedItems = items;
+                                Storage.set(Storage.KEYS.RKAP, rkapState); // push ke Firebase
                             }
                         }
 
