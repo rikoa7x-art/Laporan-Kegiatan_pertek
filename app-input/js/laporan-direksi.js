@@ -1,8 +1,9 @@
 /**
- * Laporan Direksi Module - Generates weekly reports for the board of directors
+ * Weekly Report Module - Generates weekly summary reports for the board of directors
+ * (Distinct from LaporanDireksi in evaluasi.js which manages saved reports)
  */
 
-const LaporanDireksi = {
+const WeeklyReport = {
     /**
      * Show the weekly report modal
      */
@@ -33,7 +34,7 @@ const LaporanDireksi = {
                     <input type="date" id="reportEndDate" class="form-input" value="${endDate}">
                 </div>
                 <div style="display: flex; align-items: flex-end;">
-                    <button class="btn btn-primary" onclick="LaporanDireksi.updateReport()">🔄 Update</button>
+                <button class="btn btn-primary" onclick="WeeklyReport.updateReport()">🔄 Update</button>
                 </div>
             </div>
 
@@ -54,7 +55,7 @@ const LaporanDireksi = {
         });
 
         // Change "Simpan" button text to "Cetak"
-        const saveBtn = document.getElementById('modalSave');
+        const saveBtn = document.getElementById('btnModalSave');
         if (saveBtn) {
             saveBtn.innerHTML = '🖨️ Cetak Laporan';
             saveBtn.className = 'btn btn-primary';
@@ -251,6 +252,10 @@ const LaporanDireksi = {
     printReport() {
         const content = document.getElementById('reportContent').innerHTML;
         const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            Toast.show('Popup diblokir browser. Izinkan popup untuk mencetak.', 'warning');
+            return;
+        }
 
         printWindow.document.write(`
             <html>
@@ -274,3 +279,12 @@ const LaporanDireksi = {
         printWindow.document.close();
     }
 };
+
+// Compatibility shim: only expose WeeklyReport as LaporanDireksi if evaluasi.js
+// hasn't already defined it (evaluasi.js loads before this and defines the full module)
+if (typeof window.LaporanDireksi === 'undefined') {
+    window.LaporanDireksi = Object.assign({}, WeeklyReport, {
+        init() { },   // no-op stub so app.js won't crash
+        render() { }  // no-op stub
+    });
+}

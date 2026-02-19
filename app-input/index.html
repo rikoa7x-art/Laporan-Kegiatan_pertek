@@ -603,6 +603,14 @@
                 const items = rkapState.selectedItems;
                 rkapPrograms = Array.isArray(items) ? items : Array.from(items);
             }
+
+            // Filter: exclude RKAP items that are already used as a pekerjaan name
+            // (case-insensitive comparison to handle minor casing differences)
+            const usedNames = new Set(
+                existingPekerjaan.map(p => p.namaPekerjaan.trim().toLowerCase())
+            );
+            rkapPrograms = rkapPrograms.filter(desc => !usedNames.has(desc.trim().toLowerCase()));
+
             const rkapDropdownOptions = rkapPrograms.length > 0
                 ? rkapPrograms.map(desc => `<option value="${Utils.escapeHtml(desc)}">${Utils.escapeHtml(desc)}</option>`).join('')
                 : '';
@@ -638,7 +646,17 @@
                                    style="display:none; margin-top: 4px;"
                                    placeholder="Ketik nama pekerjaan..."
                                    ${rkapPrograms.length === 0 ? '' : ''}>
-                            ${rkapPrograms.length === 0 ? '<p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">⚠️ Belum ada data RKAP. Pilih "Input Manual" atau sync data RKAP terlebih dahulu.</p>' : ''}
+                            ${(() => {
+                    const rkapTotal = (() => {
+                        const s = Storage.get(Storage.KEYS.RKAP, true);
+                        if (!s || !s.selectedItems) return 0;
+                        const it = s.selectedItems;
+                        return (Array.isArray(it) ? it : Array.from(it)).length;
+                    })();
+                    if (rkapTotal === 0) return '<p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">⚠️ Belum ada data RKAP. Pilih "Input Manual" atau sync data RKAP terlebih dahulu.</p>';
+                    if (rkapPrograms.length === 0) return '<p style="font-size:0.75rem; color:var(--warning); margin-top:4px;">✅ Semua program RKAP sudah dilaksanakan. Gunakan "Input Manual" jika perlu.</p>';
+                    return `<p style="font-size:0.75rem; color:var(--text-muted); margin-top:4px;">📋 ${rkapPrograms.length} program tersedia (${rkapTotal - rkapPrograms.length} sudah dilaksanakan)</p>`;
+                })()}
                         </div>
 
                         <div class="form-group">
@@ -821,11 +839,15 @@
                             modalTitle.textContent = isPengawasan ? '👁️ Input Pengawasan' : '📍 Input Pekerjaan Baru (Survey)';
                         }
 
-                        // Toggle required attributes
+                        // Toggle required attributes + reset state saat ganti mode
                         if (isPengawasan) {
                             selectLokasi.removeAttribute('required');
                         } else {
                             selectLokasi.setAttribute('required', 'required');
+                            // Reset lokasi agar user tidak lupa mengisinya kembali
+                            selectLokasi.value = '';
+                            // Deselect semua checkbox agar tidak ada pelaksana tertinggal dari mode lain
+                            document.querySelectorAll('input[name="surveyors"]:checked').forEach(cb => cb.checked = false);
                         }
                     });
                 },
@@ -838,13 +860,11 @@
                     }
 
                     if (isPengawasan) {
-                        console.log('Mode: Pengawasan');
                         // Mode pengawasan - pilih pekerjaan yang sudah ada
                         const pekerjaanId = document.getElementById('selectPekerjaan').value;
                         const progressValue = document.getElementById('selectProgress').value;
                         const selectedPengawas = Array.from(document.querySelectorAll('input[name="surveyors"]:checked')).map(cb => cb.value);
 
-                        console.log('Data:', { pekerjaanId, progressValue, selectedPengawas });
 
                         if (!pekerjaanId) {
                             Toast.show('Pilih pekerjaan yang akan diawasi', 'error');
@@ -901,7 +921,6 @@
                             }]
                         };
 
-                        console.log('Saving Pengawasan:', pengawasan);
                         Storage.add(Storage.KEYS.PEKERJAAN, pengawasan);
 
                         // Update progress pada pekerjaan asli yang diawasi
@@ -1406,10 +1425,14 @@
         // Helper function to view file (open in new tab for images/pdf)
         function viewFile(fileData) {
             const newWindow = window.open();
+            if (!newWindow) {
+                Toast.show('Popup diblokir. Izinkan popup untuk melihat file.', 'warning');
+                return;
+            }
             if (fileData.type.includes('pdf')) {
-                newWindow.document.write(`< iframe src = "${fileData.data}" style = "width:100%; height:100%; border:none;" ></iframe > `);
+                newWindow.document.write(`<iframe src="${fileData.data}" style="width:100%; height:100%; border:none;"></iframe>`);
             } else {
-                newWindow.document.write(`< img src = "${fileData.data}" style = "max-width:100%; height:auto;" >`);
+                newWindow.document.write(`<img src="${fileData.data}" style="max-width:100%; height:auto;">`);
             }
         }
 
@@ -1488,7 +1511,6 @@
                 cleanPekerja.some((p, i) => p.id !== existingPekerja[i]?.id || p.nama !== existingPekerja[i]?.nama);
 
             if (workersChanged) {
-                console.log('Worker list changed or needs migration, updating and syncing to cloud...');
                 Storage.set(Storage.KEYS.PEKERJA, cleanPekerja); // Allow sync to cloud to propagate new IDs
             }
 
@@ -1515,7 +1537,6 @@
 
                 if (needsUpdate) {
                     Storage.set(Storage.KEYS.PEKERJAAN, pekerjaan); // Sync migrated pekerjaan to cloud
-                    console.log('Migrated pelaksana IDs to new format and synced to cloud');
                 }
             }
         }

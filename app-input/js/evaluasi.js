@@ -457,6 +457,10 @@ const LaporanDireksi = {
         `;
 
         const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            Toast.show('Popup diblokir browser. Izinkan popup untuk mencetak.', 'warning');
+            return;
+        }
         printWindow.document.write(printContent);
         printWindow.document.close();
         printWindow.focus();
