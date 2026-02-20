@@ -430,8 +430,7 @@ const RkapApp = {
             const matchesBranch = !branch || p.branch === branch;
             let matchesMonth = true;
             if (month) {
-                let searchMonth = month.toUpperCase();
-                if (searchMonth === 'NOVEMBER') searchMonth = 'NOPEMBER';
+                let searchMonth = Utils.getMonthKey(month);
                 if (p.monthly && Object.keys(p.monthly).length > 0) {
                     matchesMonth = (p.monthly[searchMonth] || 0) > 0;
                 }
@@ -533,8 +532,7 @@ const RkapApp = {
             const matchesBranch = !this.state.filters.branch || p.branch === this.state.filters.branch;
             let matchesMonth = true;
             if (month) {
-                let searchMonth = month.toUpperCase();
-                if (searchMonth === 'NOVEMBER') searchMonth = 'NOPEMBER';
+                let searchMonth = Utils.getMonthKey(month);
                 if (p.monthly && Object.keys(p.monthly).length > 0) {
                     matchesMonth = (p.monthly[searchMonth] || 0) > 0;
                 }
@@ -605,8 +603,7 @@ const RkapApp = {
             const matchesBranch = !branch || p.branch === branch;
             let matchesMonth = true;
             if (month) {
-                let searchMonth = month.toUpperCase();
-                if (searchMonth === 'NOVEMBER') searchMonth = 'NOPEMBER';
+                let searchMonth = Utils.getMonthKey(month);
 
                 if (p.monthly && Object.keys(p.monthly).length > 0) {
                     matchesMonth = (p.monthly[searchMonth] || 0) > 0;
@@ -1082,11 +1079,11 @@ const RkapApp = {
         const currentMonth = this.state.filters.month || 'Januari';
         const branch = this.state.filters.branch;
         const year = '2026';
-        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+        const monthKey = `${Utils.getMonthKey(currentMonth)}_${year}`;
 
         const selected = (this.masterData || []).filter(p => {
             const isSelected = this.state.selectedItems.has(p.description);
-            const hasMonthAllocation = (p.monthly && (p.monthly[currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()] || 0) > 0);
+            const hasMonthAllocation = (p.monthly && (p.monthly[Utils.getMonthKey(currentMonth)] || 0) > 0);
             const matchesBranch = !branch || p.branch === branch;
             return isSelected && hasMonthAllocation && matchesBranch;
         });
@@ -1192,7 +1189,7 @@ const RkapApp = {
                                                         <div class="flex items-center gap-2">
                                                             <span class="text-[10px] text-slate-500 font-mono">${prog.code || '-'}</span>
                                                             <div class="text-[10px] text-indigo-400 font-bold">
-                                                                Rp ${(prog.monthly[currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()] || 0).toLocaleString('id-ID')}
+                                                                Rp ${(prog.monthly[Utils.getMonthKey(currentMonth)] || 0).toLocaleString('id-ID')}
                                                             </div>
                                                         </div>
                                                     </td>
@@ -1611,11 +1608,11 @@ const RkapApp = {
     exportWeeklyExcel() {
         const currentMonth = this.state.filters.month || 'Januari';
         const year = '2026';
-        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+        const monthKey = `${Utils.getMonthKey(currentMonth)}_${year}`;
 
         const selected = (this.masterData || []).filter(p => {
             return this.state.selectedItems.has(p.description) &&
-                (p.monthly && (p.monthly[currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()] || 0) > 0);
+                (p.monthly && (p.monthly[Utils.getMonthKey(currentMonth)] || 0) > 0);
         });
 
         if (selected.length === 0) {
@@ -1629,7 +1626,7 @@ const RkapApp = {
                 'Program Kerja': p.description,
                 'Kode': p.code || '-',
                 'Cabang': p.branch,
-                'Pagu Bulan': p.monthly[currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()] || 0
+                'Pagu Bulan': p.monthly[Utils.getMonthKey(currentMonth)] || 0
             };
 
             [1, 2, 3, 4].forEach(w => {
@@ -1656,12 +1653,12 @@ const RkapApp = {
         const currentMonth = this.state.filters.month || 'Januari';
         const branch = this.state.filters.branch;
         const year = '2026';
-        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+        const monthKey = `${Utils.getMonthKey(currentMonth)}_${year}`;
 
         // Get selected programs for current month
         const selected = (this.masterData || []).filter(p => {
             const isSelected = this.state.selectedItems.has(p.description);
-            const hasMonthAllocation = (p.monthly && (p.monthly[currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()] || 0) > 0);
+            const hasMonthAllocation = (p.monthly && (p.monthly[Utils.getMonthKey(currentMonth)] || 0) > 0);
             const matchesBranch = !branch || p.branch === branch;
             return isSelected && hasMonthAllocation && matchesBranch;
         });
@@ -1988,7 +1985,7 @@ const RkapApp = {
         const currentWeek = this.state.filters.dailyWeek || 'W1';
         const branch = this.state.filters.branch;
         const year = '2026';
-        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+        const monthKey = `${Utils.getMonthKey(currentMonth)}_${year}`;
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         const branches = [...new Set((this.masterData || []).map(p => p.branch).filter(Boolean))].sort();
 
@@ -2234,7 +2231,7 @@ const RkapApp = {
         const currentWeek = this.state.filters.dailyWeek || 'W1';
         const branch = this.state.filters.branch;
         const year = '2026';
-        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+        const monthKey = `${Utils.getMonthKey(currentMonth)}_${year}`;
 
         const personnelActivities = {};
         const programs = (this.masterData || []).filter(p => {
@@ -2346,7 +2343,7 @@ const RkapApp = {
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         const currentMonth = this.state.filters.month || months[new Date().getMonth()];
         const year = '2026';
-        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+        const monthKey = `${Utils.getMonthKey(currentMonth)}_${year}`;
 
         // Get all programs with weekly data
         const programs = (this.masterData || []).filter(p => this.state.selectedItems.has(p.description));
@@ -2524,7 +2521,7 @@ const RkapApp = {
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
         const currentMonth = this.state.filters.month || months[new Date().getMonth()];
         const year = '2026';
-        const monthKey = `${currentMonth.toUpperCase() === 'NOVEMBER' ? 'NOPEMBER' : currentMonth.toUpperCase()}_${year}`;
+        const monthKey = `${Utils.getMonthKey(currentMonth)}_${year}`;
 
         const programs = (this.masterData || []).filter(p => this.state.selectedItems.has(p.description));
         const data = [];

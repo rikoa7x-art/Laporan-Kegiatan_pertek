@@ -187,6 +187,15 @@ const Pekerjaan = {
     showInputForm() {
         const pekerja = Storage.get(Storage.KEYS.PEKERJA);
         const rencanaMingguan = Storage.get(Storage.KEYS.RENCANA_MINGGUAN);
+        const semuaPekerjaan = Storage.get(Storage.KEYS.PEKERJAAN) || [];
+
+        // Get IDs of Rencana Mingguan that are already linked to a Pekerjaan
+        const usedRencanaIds = semuaPekerjaan
+            .map(p => p.rencanaMingguan)
+            .filter(id => id);
+
+        // Filter out used Rencana Mingguan
+        const availableRencanaMingguan = rencanaMingguan.filter(r => !usedRencanaIds.includes(r.id));
 
         // All workers can do survey (no role filter)
         const pekerjaCheckboxes = pekerja.map(p => `
@@ -196,7 +205,7 @@ const Pekerjaan = {
             </label>
         `).join('');
 
-        const rencanaOptions = rencanaMingguan.map(r => {
+        const rencanaOptions = availableRencanaMingguan.map(r => {
             const periode = `${Utils.formatDateShort(r.tanggalMulai)} - ${Utils.formatDateShort(r.tanggalSelesai)}`;
             return `<option value="${r.id}">Minggu ke-${r.mingguKe} (${periode})</option>`;
         }).join('');
@@ -432,7 +441,7 @@ const Pekerjaan = {
         const progress = this.calculateProgress(pekerjaan);
 
         // Store dokumen globally for view/download handlers
-        window._currentDokumen = [];
+        Pekerjaan._currentDokumen = [];
 
         const timelineHtml = pekerjaan.tahapan.map((tahap, index) => {
             const isActive = index === pekerjaan.tahapan.length - 1 && pekerjaan.status !== 'selesai';
@@ -442,8 +451,8 @@ const Pekerjaan = {
             let stageDokumenHtml = '';
             const stageDocs = tahap.dokumen || [];
             const dokumenItems = stageDocs.map((doc, docIdx) => {
-                const globalIndex = window._currentDokumen.length;
-                window._currentDokumen.push(doc);
+                const globalIndex = Pekerjaan._currentDokumen.length;
+                Pekerjaan._currentDokumen.push(doc);
                 const icon = doc.type && doc.type.includes('pdf') ? '📄' : '🖼️';
                 const sizeKB = doc.size ? Math.round(doc.size / 1024) : 0;
                 return `
@@ -706,7 +715,7 @@ const Pekerjaan = {
      * View file in new tab
      */
     viewFile(index) {
-        const fileData = window._currentDokumen[index];
+        const fileData = Pekerjaan._currentDokumen[index];
         if (!fileData) return;
 
         const newWindow = window.open();
@@ -721,7 +730,7 @@ const Pekerjaan = {
      * Download file
      */
     downloadFile(index) {
-        const fileData = window._currentDokumen[index];
+        const fileData = Pekerjaan._currentDokumen[index];
         if (!fileData) return;
 
         const link = document.createElement('a');

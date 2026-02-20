@@ -58,6 +58,17 @@ const Utils = {
     },
 
     /**
+     * Get consistent month key for RKAP (handles November -> NOPEMBER)
+     * @param {string} monthStr - Month name
+     * @returns {string} - Month key in uppercase
+     */
+    getMonthKey(monthStr) {
+        if (!monthStr) return '';
+        const upper = monthStr.toUpperCase();
+        return upper === 'NOVEMBER' ? 'NOPEMBER' : upper;
+    },
+
+    /**
      * Get week number of the month
      * @param {Date} date - Date object
      * @returns {number} - Week number (1-5)
