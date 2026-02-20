@@ -412,28 +412,30 @@ const RkapApp = {
         const branches = [...new Set((this.masterData || []).map(p => p.branch).filter(Boolean))].sort();
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
-        // Validate filters against current data
-        if (this.state.filters.branch && !branches.includes(this.state.filters.branch)) {
-            console.warn(`Filter branch "${this.state.filters.branch}" is invalid, resetting...`);
+        // Validate filters against current data (case-insensitive)
+        const branchFilter = this.state.filters.branch || '';
+        const branchesLower = branches.map(b => b.toLowerCase());
+        if (branchFilter && !branchesLower.includes(branchFilter.toLowerCase())) {
+            console.warn(`Filter branch "${branchFilter}" is invalid, resetting...`);
             this.state.filters.branch = '';
         }
 
         // Get filtered data for stats
         const { search, branch, month } = this.state.filters;
         const query = (search || '').toLowerCase();
+        const normBranch = (branch || '').trim().toLowerCase();
 
         const filtered = (this.masterData || []).filter(p => {
             const matchesSearch = !query ||
                 p.description.toLowerCase().includes(query) ||
                 p.code.toLowerCase().includes(query) ||
                 (p.category && p.category.toLowerCase().includes(query));
-            const matchesBranch = !branch || p.branch === branch;
+            const pBranch = (p.branch || '').trim().toLowerCase();
+            const matchesBranch = !normBranch || pBranch === normBranch;
             let matchesMonth = true;
             if (month) {
-                let searchMonth = Utils.getMonthKey(month);
-                if (p.monthly && Object.keys(p.monthly).length > 0) {
-                    matchesMonth = (p.monthly[searchMonth] || 0) > 0;
-                }
+                const searchMonth = Utils.getMonthKey(month);
+                matchesMonth = !!(p.monthly && (p.monthly[searchMonth] || 0) > 0);
             }
             return matchesSearch && matchesBranch && matchesMonth;
         });
@@ -634,14 +636,16 @@ const RkapApp = {
         const totalMaster = this.masterData ? this.masterData.length : 0;
         const totalSelected = this.state.selectedItems.size;
 
+        const normBranch = (branch || '').trim().toLowerCase();
+
         const filtered = (this.masterData || []).filter(p => {
-            const matchesBranch = !branch || p.branch === branch;
+            const pBranch = (p.branch || '').trim().toLowerCase();
+            const matchesBranch = !normBranch || pBranch === normBranch;
             let matchesMonth = true;
             if (month) {
                 const searchMonth = Utils.getMonthKey(month);
-                if (p.monthly && Object.keys(p.monthly).length > 0) {
-                    matchesMonth = (p.monthly[searchMonth] || 0) > 0;
-                }
+                // Strict: if month filter is active, program MUST have allocation in that month
+                matchesMonth = !!(p.monthly && (p.monthly[searchMonth] || 0) > 0);
             }
             return matchesBranch && matchesMonth;
         });
@@ -711,20 +715,19 @@ const RkapApp = {
         if (!this.masterData) return [];
         const { search, branch, month } = this.state.filters;
         const query = (search || '').toLowerCase();
+        const normBranch = (branch || '').trim().toLowerCase();
 
         return this.masterData.filter(p => {
             const matchesSearch = !query ||
                 p.description.toLowerCase().includes(query) ||
                 p.code.toLowerCase().includes(query) ||
                 (p.category && p.category.toLowerCase().includes(query));
-            const matchesBranch = !branch || p.branch === branch;
+            const pBranch = (p.branch || '').trim().toLowerCase();
+            const matchesBranch = !normBranch || pBranch === normBranch;
             let matchesMonth = true;
             if (month) {
-                let searchMonth = Utils.getMonthKey(month);
-
-                if (p.monthly && Object.keys(p.monthly).length > 0) {
-                    matchesMonth = (p.monthly[searchMonth] || 0) > 0;
-                }
+                const searchMonth = Utils.getMonthKey(month);
+                matchesMonth = !!(p.monthly && (p.monthly[searchMonth] || 0) > 0);
             }
             return matchesSearch && matchesBranch && matchesMonth;
         });
