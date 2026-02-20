@@ -999,8 +999,15 @@ const RkapApp = {
         const container = document.getElementById('view-monthly');
         if (!container) return;
 
-        // Get selected programs
-        const selected = (this.masterData || []).filter(p => this.state.selectedItems.has(p.description));
+        const branches = [...new Set((this.masterData || []).map(p => p.branch).filter(Boolean))].sort();
+        const activeBranch = this.state.filters.branch || '';
+
+        // Get selected programs — filtered by branch if active
+        const selected = (this.masterData || []).filter(p => {
+            const isSelected = this.state.selectedItems.has(p.description);
+            const matchesBranch = !activeBranch || p.branch === activeBranch;
+            return isSelected && matchesBranch;
+        });
 
         if (selected.length === 0) {
             container.innerHTML = `
@@ -1028,12 +1035,20 @@ const RkapApp = {
         const grandTotalPagu = selected.reduce((sum, p) => sum + (p.pagu || 0), 0);
 
         container.innerHTML = `
-            <div class="flex items-center justify-between mb-6">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
                 <div>
                     <h3 class="text-xl font-bold text-white">Rencana Alokasi Bulanan</h3>
-                    <p class="text-sm text-slate-500 mt-1">Total ${selected.length} program • Total Pagu: <span class="text-emerald-400 font-semibold">Rp ${(grandTotalPagu / 1000000).toFixed(1)}Jt</span></p>
+                    <p class="text-sm text-slate-500 mt-1">Total ${selected.length} program${activeBranch ? ` • Cabang: <span class="text-indigo-400 font-semibold">${activeBranch}</span>` : ''} • Total Pagu: <span class="text-emerald-400 font-semibold">Rp ${(grandTotalPagu / 1000000).toFixed(1)}Jt</span></p>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 flex-wrap">
+                    <div class="relative">
+                        <i data-lucide="map-pin" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                        <select onchange="RkapApp.handleMonthlyBranchFilter(this.value)" 
+                            class="bg-slate-900/50 border border-slate-700/50 rounded-xl pl-9 pr-8 py-2 text-sm text-slate-300 focus:outline-none focus:border-indigo-500 appearance-none min-w-[160px]">
+                            <option value="">Semua Cabang</option>
+                            ${branches.map(b => `<option value="${b}" ${activeBranch === b ? 'selected' : ''}>${b}</option>`).join('')}
+                        </select>
+                    </div>
                     <button onclick="RkapApp.exportMonthlyExcel()" class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
                         <i data-lucide="download" class="w-4 h-4"></i>
                         Export Excel
@@ -1128,9 +1143,24 @@ const RkapApp = {
         lucide.createIcons();
     },
 
+    // Handle branch filter change on the Monthly view
+    handleMonthlyBranchFilter(branchValue) {
+        this.state.filters.branch = branchValue;
+        this.renderMonthly();
+        this.saveData();
+    },
+
     exportMonthlyExcel() {
-        const selected = (this.masterData || []).filter(p => this.state.selectedItems.has(p.description));
-        if (selected.length === 0) return;
+        const activeBranch = this.state.filters.branch || '';
+        const selected = (this.masterData || []).filter(p => {
+            const isSelected = this.state.selectedItems.has(p.description);
+            const matchesBranch = !activeBranch || p.branch === activeBranch;
+            return isSelected && matchesBranch;
+        });
+        if (selected.length === 0) {
+            Toast.show('Tidak ada data untuk diekspor', 'warning');
+            return;
+        }
 
         const months = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOPEMBER', 'DESEMBER'];
 
