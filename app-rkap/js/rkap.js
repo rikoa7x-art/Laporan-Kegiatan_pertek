@@ -481,7 +481,7 @@ const RkapApp = {
                     <div class="stat-kpi-icon bg-blue-500/10 text-blue-400"><i data-lucide="banknote" class="w-5 h-5"></i></div>
                     <div class="stat-kpi-content">
                         <div class="stat-kpi-label">Pagu ${currentMonth || '2026'}</div>
-                        <div class="stat-kpi-value text-blue-400">Rp ${(totalPaguFiltered / 1000000000).toFixed(1)}M</div>
+                        <div class="stat-kpi-value text-blue-400">Rp ${(totalPaguFiltered / 1000000).toFixed(0)} Jt</div>
                         <div class="stat-kpi-sub">${totalPaguFiltered.toLocaleString('id-ID')}</div>
                     </div>
                 </div>
@@ -1038,7 +1038,7 @@ const RkapApp = {
             <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
                 <div>
                     <h3 class="text-xl font-bold text-white">Rencana Alokasi Bulanan</h3>
-                    <p class="text-sm text-slate-500 mt-1">Total ${selected.length} program${activeBranch ? ` • Cabang: <span class="text-indigo-400 font-semibold">${activeBranch}</span>` : ''} • Total Pagu: <span class="text-emerald-400 font-semibold">Rp ${(grandTotalPagu / 1000000).toFixed(1)}Jt</span></p>
+                    <p class="text-sm text-slate-500 mt-1">Total ${selected.length} program${activeBranch ? ` • Cabang: <span class="text-indigo-400 font-semibold">${activeBranch}</span>` : ''} • Total Pagu: <span class="text-emerald-400 font-semibold">Rp ${(grandTotalPagu / 1000000).toFixed(0)} Juta</span></p>
                 </div>
                 <div class="flex items-center gap-3 flex-wrap">
                     <div class="relative">
