@@ -171,13 +171,27 @@ const RkapApp = {
     },
 
     navigateTo(viewId) {
-        // Update Nav State
+        // Update Sidebar Nav State
         document.querySelectorAll('.nav-item').forEach(el => {
             el.classList.toggle('active', el.dataset.view === viewId);
             el.classList.toggle('bg-slate-700', el.dataset.view === viewId);
             el.classList.toggle('text-white', el.dataset.view === viewId);
             el.classList.toggle('text-slate-400', el.dataset.view !== viewId);
         });
+
+        // Update Bottom Nav active state (mobile)
+        document.querySelectorAll('.bottom-nav-item').forEach(el => {
+            el.classList.toggle('active', el.dataset.view === viewId);
+        });
+
+        // Close sidebar on mobile when navigating
+        if (window.innerWidth < 768) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) sidebar.classList.remove('open');
+            if (overlay) overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
 
         // Update View Visibility
         document.querySelectorAll('.view-section').forEach(el => {
@@ -188,6 +202,9 @@ const RkapApp = {
         if (targetView) {
             targetView.classList.remove('hidden');
         }
+
+        // Scroll to top when switching views on mobile
+        window.scrollTo({ top: 0, behavior: 'smooth' });
 
         // Update Header Title
         const titles = {
