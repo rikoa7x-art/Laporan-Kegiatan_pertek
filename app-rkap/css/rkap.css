@@ -10,6 +10,88 @@
     --glass-border: rgba(255, 255, 255, 0.05);
 }
 
+/* ========================================
+   KPI STAT CARDS — Dashboard Header
+   ======================================== */
+.stat-kpi-card {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1.125rem 1.25rem;
+    background: var(--rkap-card-bg);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--rkap-border);
+    border-radius: 1rem;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.stat-kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.35);
+    border-color: rgba(99, 102, 241, 0.25);
+}
+
+.stat-kpi-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stat-kpi-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-kpi-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--rkap-text-muted);
+    margin-bottom: 0.125rem;
+    white-space: nowrap;
+}
+
+.stat-kpi-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--rkap-text-main);
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+}
+
+.stat-kpi-sub {
+    font-size: 0.65rem;
+    color: #475569;
+    margin-top: 0.125rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.stat-kpi-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 9999px;
+    margin-top: 0.375rem;
+    overflow: hidden;
+}
+
+.stat-kpi-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    border-radius: 9999px;
+    transition: width 0.6s ease-out;
+    min-width: 4px;
+}
+
+
 body {
     background: radial-gradient(circle at top right, #1e293b, #0f172a);
     font-family: 'Inter', sans-serif;

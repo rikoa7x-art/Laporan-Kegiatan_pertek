@@ -443,9 +443,60 @@ const RkapApp = {
         const totalPaguFiltered = filtered.reduce((acc, p) => acc + (p.pagu || 0), 0);
         const totalSelected = this.state.selectedItems.size;
 
+        // Count how many weekly schedule slots are filled for the current month
+        const currentMonth = this.state.filters.month;
+        const monthKey = currentMonth ? `${Utils.getMonthKey(currentMonth)}_2026` : null;
+        let totalScheduledSlots = 0;
+        if (monthKey && this.state.weeklyPlans && this.state.weeklyPlans[monthKey]) {
+            const monthPlans = this.state.weeklyPlans[monthKey];
+            Object.values(monthPlans).forEach(progPlans => {
+                ['W1', 'W2', 'W3', 'W4'].forEach(wk => {
+                    if (progPlans[wk] && (progPlans[wk].SURVEY_DATE || progPlans[wk].SURVEYOR_1)) totalScheduledSlots++;
+                });
+            });
+        }
+        const totalSchedulableSlots = totalSelected * 4;
+        const schedulePercent = totalSchedulableSlots > 0 ? Math.round((totalScheduledSlots / totalSchedulableSlots) * 100) : 0;
+
         container.innerHTML = `
+            <!-- KPI Summary Bar -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 animate-fade-in">
+                <div class="stat-kpi-card">
+                    <div class="stat-kpi-icon bg-indigo-500/10 text-indigo-400"><i data-lucide="database" class="w-5 h-5"></i></div>
+                    <div class="stat-kpi-content">
+                        <div class="stat-kpi-label">Total Program</div>
+                        <div class="stat-kpi-value">${totalMaster.toLocaleString()}</div>
+                        <div class="stat-kpi-sub">${totalFiltered !== totalMaster ? totalFiltered + ' terfilter' : 'semua aktif'}</div>
+                    </div>
+                </div>
+                <div class="stat-kpi-card">
+                    <div class="stat-kpi-icon bg-emerald-500/10 text-emerald-400"><i data-lucide="check-circle" class="w-5 h-5"></i></div>
+                    <div class="stat-kpi-content">
+                        <div class="stat-kpi-label">Program Dipilih</div>
+                        <div class="stat-kpi-value text-emerald-400">${totalSelected.toLocaleString()}</div>
+                        <div class="stat-kpi-sub">${totalMaster > 0 ? Math.round(totalSelected / totalMaster * 100) : 0}% dari total</div>
+                    </div>
+                </div>
+                <div class="stat-kpi-card">
+                    <div class="stat-kpi-icon bg-blue-500/10 text-blue-400"><i data-lucide="banknote" class="w-5 h-5"></i></div>
+                    <div class="stat-kpi-content">
+                        <div class="stat-kpi-label">Pagu ${currentMonth || '2026'}</div>
+                        <div class="stat-kpi-value text-blue-400">Rp ${(totalPaguFiltered / 1000000000).toFixed(1)}M</div>
+                        <div class="stat-kpi-sub">${totalPaguFiltered.toLocaleString('id-ID')}</div>
+                    </div>
+                </div>
+                <div class="stat-kpi-card">
+                    <div class="stat-kpi-icon bg-amber-500/10 text-amber-400"><i data-lucide="calendar-check" class="w-5 h-5"></i></div>
+                    <div class="stat-kpi-content">
+                        <div class="stat-kpi-label">Jadwal Terisi</div>
+                        <div class="stat-kpi-value text-amber-400">${totalScheduledSlots}/${totalSchedulableSlots}</div>
+                        <div class="stat-kpi-progress"><div style="width:${schedulePercent}%" class="stat-kpi-progress-bar"></div></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Full Width: Database Program Kerja -->
-            <div class="card-premium h-[calc(100vh-200px)] flex flex-col overflow-hidden animate-fade-in">
+            <div class="card-premium h-[calc(100vh-340px)] flex flex-col overflow-hidden">
                 <div class="p-6 border-b border-slate-700/50 bg-white/5 space-y-4">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
@@ -973,11 +1024,14 @@ const RkapApp = {
 
         const months = ['JANUARI', 'FEBRUARI', 'MARET', 'APRIL', 'MEI', 'JUNI', 'JULI', 'AGUSTUS', 'SEPTEMBER', 'OKTOBER', 'NOPEMBER', 'DESEMBER'];
 
+        // Calculate grand total pagu for progress bar
+        const grandTotalPagu = selected.reduce((sum, p) => sum + (p.pagu || 0), 0);
+
         container.innerHTML = `
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h3 class="text-xl font-bold text-white">Rencana Alokasi Bulanan</h3>
-                    <p class="text-sm text-slate-500 mt-1">Total ${selected.length} program kerja terpilih</p>
+                    <p class="text-sm text-slate-500 mt-1">Total ${selected.length} program • Total Pagu: <span class="text-emerald-400 font-semibold">Rp ${(grandTotalPagu / 1000000).toFixed(1)}Jt</span></p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button onclick="RkapApp.exportMonthlyExcel()" class="flex items-center gap-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-4 py-2 rounded-xl transition-all text-sm font-medium">
@@ -990,6 +1044,26 @@ const RkapApp = {
                 </div>
             </div>
 
+            <!-- Monthly distribution summary bar -->
+            <div class="card-premium p-4 mb-6">
+                <div class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Distribusi Anggaran Per Bulan</div>
+                <div class="flex items-end gap-1 h-14">
+                    ${months.map(m => {
+            const monthTotal = selected.reduce((sum, p) => sum + ((p.monthly && p.monthly[m]) || 0), 0);
+            const maxMonth = months.reduce((mx, mon) => {
+                const t = selected.reduce((s, p) => s + ((p.monthly && p.monthly[mon]) || 0), 0);
+                return t > mx ? t : mx;
+            }, 0);
+            const barH = maxMonth > 0 ? Math.max(4, Math.round((monthTotal / maxMonth) * 48)) : 4;
+            const hasVal = monthTotal > 0;
+            return `<div class="flex-1 flex flex-col items-center gap-1 cursor-default" title="${m}: Rp ${monthTotal.toLocaleString('id-ID')}">
+                            <div class="${hasVal ? 'bg-indigo-500 shadow-[0_0_8px_rgba(99,102,241,0.3)]' : 'bg-slate-700/50'} rounded-t w-full transition-all" style="height:${barH}px"></div>
+                            <div class="text-[8px] font-bold ${hasVal ? 'text-indigo-400' : 'text-slate-600'} uppercase" >${m.substring(0, 3)}</div>
+                        </div>`;
+        }).join('')}
+                </div>
+            </div>
+
             <div class="card-premium overflow-hidden">
                 <div class="overflow-x-auto custom-scrollbar">
                     <table class="w-full text-left border-collapse min-w-[1200px]">
@@ -999,10 +1073,13 @@ const RkapApp = {
                                 <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-400 border-r border-slate-700/50 min-w-[300px]">Program Kerja</th>
                                 ${months.map(m => `<th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-400 text-right min-w-[120px]">${m.substring(0, 3)}</th>`).join('')}
                                 <th class="p-4 text-xs font-bold uppercase tracking-wider text-white text-right bg-indigo-500/10 min-w-[140px]">Total Pagu</th>
+                                <th class="p-4 text-xs font-bold uppercase tracking-wider text-slate-400 text-center min-w-[80px]">% Total</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-800">
-                            ${selected.map((prog, idx) => `
+                            ${selected.map((prog, idx) => {
+            const pct = grandTotalPagu > 0 ? ((prog.pagu || 0) / grandTotalPagu * 100).toFixed(1) : '0.0';
+            return `
                                 <tr class="hover:bg-white/5 transition-colors group">
                                     <td class="p-4 text-sm text-slate-500 border-r border-slate-700/50 text-center">${idx + 1}</td>
                                     <td class="p-4 border-r border-slate-700/50">
@@ -1010,16 +1087,24 @@ const RkapApp = {
                                         <div class="text-[10px] text-slate-500 mt-1 font-mono uppercase tracking-tighter">${prog.code || '-'} | ${prog.branch}</div>
                                     </td>
                                     ${months.map(m => {
-            const value = (prog.monthly && prog.monthly[m]) || 0;
-            return `<td class="p-4 text-sm text-right ${value > 0 ? 'text-indigo-400 font-medium' : 'text-slate-600'}">
+                const value = (prog.monthly && prog.monthly[m]) || 0;
+                return `<td class="p-4 text-sm text-right ${value > 0 ? 'text-indigo-400 font-medium' : 'text-slate-600'}">
                                             ${value > 0 ? value.toLocaleString('id-ID') : '-'}
                                         </td>`;
-        }).join('')}
+            }).join('')}
                                     <td class="p-4 text-sm text-right font-bold text-emerald-400 bg-emerald-500/5">
                                         ${(prog.pagu || 0).toLocaleString('id-ID')}
                                     </td>
-                                </tr>
-                            `).join('')}
+                                    <td class="p-4 text-center">
+                                        <div class="flex flex-col items-center gap-1">
+                                            <span class="text-xs font-bold text-slate-300">${pct}%</span>
+                                            <div class="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                                <div class="h-full bg-indigo-500 rounded-full" style="width:${pct}%"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>`;
+        }).join('')}
                         </tbody>
                         <tfoot class="bg-slate-800/30 border-t border-slate-700">
                             <tr class="font-bold">
@@ -1031,8 +1116,9 @@ const RkapApp = {
                                     </td>`;
         }).join('')}
                                 <td class="p-4 text-right text-lg text-emerald-400 bg-emerald-400/10">
-                                    ${selected.reduce((sum, p) => sum + (p.pagu || 0), 0).toLocaleString('id-ID')}
+                                    ${grandTotalPagu.toLocaleString('id-ID')}
                                 </td>
+                                <td class="p-4 text-center text-xs text-slate-400">100%</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1179,43 +1265,48 @@ const RkapApp = {
                                                 </td>
                                             </tr>
                                             <!-- Programs in this branch -->
-                                            ${programs.map((prog) => {
+                                             ${programs.map((prog) => {
                         globalIndex++;
+                        const sanitizedProgDescForBadge = this.sanitizeFirebaseKey(prog.description);
+                        const filledWeeks = [1, 2, 3, 4].filter(w => {
+                            const wd = this.state.weeklyPlans[monthKey]?.[sanitizedProgDescForBadge]?.[`W${w}`];
+                            return wd && (wd.SURVEY_DATE || wd.SURVEYOR_1);
+                        }).length;
                         return `
                                                 <tr class="hover:bg-white/5 transition-colors">
                                                     <td class="p-4 text-sm text-slate-500 border-r border-slate-700/50 text-center">${globalIndex}</td>
                                                     <td class="p-4 border-r border-slate-700/50">
                                                         <div class="font-semibold text-slate-100 mb-1 text-sm">${prog.description}</div>
-                                                        <div class="flex items-center gap-2">
+                                                        <div class="flex items-center gap-2 flex-wrap">
                                                             <span class="text-[10px] text-slate-500 font-mono">${prog.code || '-'}</span>
                                                             <div class="text-[10px] text-indigo-400 font-bold">
                                                                 Rp ${(prog.monthly[Utils.getMonthKey(currentMonth)] || 0).toLocaleString('id-ID')}
                                                             </div>
+                                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${filledWeeks === 4 ? 'bg-emerald-500/20 text-emerald-400' : filledWeeks > 0 ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-700/50 text-slate-500'}">${filledWeeks}/4 minggu</span>
                                                         </div>
                                                     </td>
                                                     ${[1, 2, 3, 4].map(week => {
-                            // Sanitize prog.description for Firebase key access
                             const sanitizedProgDesc = this.sanitizeFirebaseKey(prog.description);
                             const weekData = this.state.weeklyPlans[monthKey]?.[sanitizedProgDesc]?.[`W${week}`] || {};
                             const hasData = weekData.SURVEY_DATE || weekData.SURVEYOR_1 || weekData.DRAFTER;
-                            const surveyDate = weekData.SURVEY_DATE ? new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-';
-                            // Use base64 encoding to safely pass program description
+                            const surveyDate = weekData.SURVEY_DATE ? new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : null;
                             const encodedDesc = btoa(encodeURIComponent(prog.description));
                             return `
                                                             <td class="p-2 border-r border-slate-700/50 bg-slate-900/30 align-top">
                                                                 <button data-prog-desc="${encodedDesc}" data-month="${monthKey}" data-week="W${week}" onclick="RkapApp.openWeeklyModal('${monthKey}', decodeURIComponent(atob(this.dataset.progDesc)), 'W${week}')"
                                                                     class="w-full p-2 rounded-lg border transition-all text-left ${hasData ? 'bg-indigo-500/10 border-indigo-500/30 hover:bg-indigo-500/20' : 'bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50'}">
                                                                     ${hasData ? `
-                                                                        <div class="text-[10px] text-amber-400 font-bold mb-1">📅 ${surveyDate}</div>
+                                                                        <div class="text-[10px] text-amber-400 font-bold mb-1">📅 ${surveyDate || '-'}</div>
                                                                         <div class="space-y-0.5 text-[9px]">
-                                                                            ${weekData.SURVEYOR_1 ? `<div class="text-rose-400">▸ ${weekData.SURVEYOR_1}</div>` : ''}
-                                                                            ${weekData.SURVEYOR_2 ? `<div class="text-rose-400">▸ ${weekData.SURVEYOR_2}</div>` : ''}
-                                                                            ${weekData.DRAFTER ? `<div class="text-indigo-400">▸ ${weekData.DRAFTER}</div>` : ''}
-                                                                            ${weekData.ESTIMATOR ? `<div class="text-emerald-400">▸ ${weekData.ESTIMATOR}</div>` : ''}
-                                                                            ${weekData.MONEV ? `<div class="text-purple-400">▸ ${weekData.MONEV}</div>` : ''}
+                                                                            ${weekData.SURVEYOR_1 ? `<div class="text-rose-400 flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-rose-500 shrink-0"></span>${weekData.SURVEYOR_1}</div>` : ''}
+                                                                            ${weekData.SURVEYOR_2 ? `<div class="text-rose-400 flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-rose-500 shrink-0"></span>${weekData.SURVEYOR_2}</div>` : ''}
+                                                                            ${weekData.DRAFTER ? `<div class="text-indigo-400 flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-indigo-500 shrink-0"></span>${weekData.DRAFTER}</div>` : ''}
+                                                                            ${weekData.ESTIMATOR ? `<div class="text-emerald-400 flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-emerald-500 shrink-0"></span>${weekData.ESTIMATOR}</div>` : ''}
+                                                                            ${weekData.MONEV ? `<div class="text-purple-400 flex items-center gap-1"><span class="w-1 h-1 rounded-full bg-purple-500 shrink-0"></span>${weekData.MONEV}</div>` : ''}
                                                                         </div>
+                                                                        <div class="mt-1.5 pt-1.5 border-t border-indigo-500/20 text-[8px] text-slate-500">✔ Terisi</div>
                                                                     ` : `
-                                                                        <div class="flex flex-col items-center justify-center py-3 text-slate-500">
+                                                                        <div class="flex flex-col items-center justify-center py-3 text-slate-600">
                                                                             <i data-lucide="plus-circle" class="w-5 h-5 mb-1"></i>
                                                                             <span class="text-[9px] font-medium">Atur Jadwal</span>
                                                                         </div>
@@ -1287,8 +1378,19 @@ const RkapApp = {
                             <i data-lucide="calendar" class="w-4 h-4"></i> Tanggal Survey
                         </label>
                         <input type="date" id="modal-survey-date" value="${weekData.SURVEY_DATE || ''}"
-                            class="w-full bg-slate-800 border border-amber-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm">
-                        <p class="text-[10px] text-slate-500 mt-1">Drafter & Estimator +1 hari dari tanggal survey</p>
+                            class="w-full bg-slate-800 border border-amber-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-500 text-sm"
+                            onchange="RkapApp.previewDerivedDates(this.value)">
+                        <!-- Auto-calculated date preview -->
+                        <div id="modal-date-preview" class="mt-2 grid grid-cols-3 gap-2 text-[10px]">
+                            ${weekData.SURVEY_DATE ? (() => {
+                const base = new Date(weekData.SURVEY_DATE);
+                const d1 = this.addBusinessDays(base, 1).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                const d2 = this.addBusinessDays(base, 2).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                return `<div class="bg-rose-500/10 border border-rose-500/20 rounded-lg p-2"><div class="text-rose-400 font-bold">Surveyor</div><div class="text-slate-300">${new Date(weekData.SURVEY_DATE).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })}</div></div>
+                                        <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-2"><div class="text-indigo-400 font-bold">Drafter/Est.</div><div class="text-slate-300">${d1}</div></div>
+                                        <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-2"><div class="text-purple-400 font-bold">M&amp;E</div><div class="text-slate-300">${d2}</div></div>`;
+            })() : '<div class="col-span-3 text-slate-600 italic">Pilih tanggal survey untuk melihat jadwal derivatif</div>'}
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
@@ -1343,6 +1445,39 @@ const RkapApp = {
 
         Modal.show('Atur Jadwal Mingguan', content, 'info');
         lucide.createIcons();
+    },
+
+    // Preview derived dates in the weekly modal when survey date changes
+    previewDerivedDates(surveyDateStr) {
+        const preview = document.getElementById('modal-date-preview');
+        if (!preview) return;
+
+        if (!surveyDateStr) {
+            preview.innerHTML = '<div class="col-span-3 text-slate-600 italic">Pilih tanggal survey untuk melihat jadwal derivatif</div>';
+            return;
+        }
+
+        const base = new Date(surveyDateStr);
+        const surveyLabel = base.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', weekday: 'long' });
+        const d1 = this.addBusinessDays(base, 1);
+        const d1Label = d1.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', weekday: 'short' });
+        const d2 = this.addBusinessDays(base, 2);
+        const d2Label = d2.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', weekday: 'short' });
+
+        preview.innerHTML = `
+            <div class="bg-rose-500/10 border border-rose-500/20 rounded-lg p-2">
+                <div class="text-rose-400 font-bold">Surveyor</div>
+                <div class="text-slate-300">${surveyLabel}</div>
+            </div>
+            <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-lg p-2">
+                <div class="text-indigo-400 font-bold">Drafter/Est.</div>
+                <div class="text-slate-300">${d1Label} (+1 hari)</div>
+            </div>
+            <div class="bg-purple-500/10 border border-purple-500/20 rounded-lg p-2">
+                <div class="text-purple-400 font-bold">M&amp;E</div>
+                <div class="text-slate-300">${d2Label} (+2 hari)</div>
+            </div>
+        `;
     },
 
     saveWeeklyModal(monthKey, progDesc, weekKey) {
@@ -2177,24 +2312,32 @@ const RkapApp = {
                                         </div>
                                     </td>
                                 </tr>
-                            ` : workers.map((worker, idx) => `
+                            ` : workers.map((worker, idx) => {
+            const rankColor = worker.rank === 1 ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' : worker.rank === 2 ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' : 'bg-slate-700/50 text-slate-400 border-slate-600/30';
+            const rankLabel = worker.rank === 1 ? 'Manager' : worker.rank === 2 ? 'Asman' : 'Staff';
+            const totalTasks = dates.reduce((sum, d) => sum + (worker.days[d] || []).length, 0);
+            return `
                                 <tr class="hover:bg-white/5 transition-colors">
                                     <td class="p-4 text-sm text-slate-500 border-r border-slate-700/50 text-center">${idx + 1}</td>
                                     <td class="p-4 border-r border-slate-700/50">
                                         <div class="font-bold text-slate-100 text-sm tracking-tight">${worker.name}</div>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border ${rankColor}">${rankLabel}</span>
+                                            <span class="text-[9px] text-slate-600">${totalTasks} kegiatan</span>
+                                        </div>
                                     </td>
                                     ${dates.map(dateStr => {
-            const tasks = worker.days[dateStr] || [];
-            return `
-                                            <td class="p-4 border-r border-slate-700/50 bg-slate-900/10">
-                                                <div class="text-xs text-slate-400 leading-relaxed">
-                                                    ${tasks.length > 0 ? tasks.join('<hr class="my-1.5 border-slate-700/50">') : '<span class="text-slate-700 italic">-</span>'}
+                const tasks = worker.days[dateStr] || [];
+                return `
+                                            <td class="p-4 border-r border-slate-700/50 ${tasks.length > 0 ? 'bg-indigo-500/5' : 'bg-slate-900/10'}">
+                                                <div class="text-xs text-slate-300 leading-relaxed space-y-1">
+                                                    ${tasks.length > 0 ? tasks.map(t => `<div class="flex items-start gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0 mt-1.5"></span><span>${t}</span></div>`).join('') : '<span class="text-slate-700 italic text-[10px]">-</span>'}
                                                 </div>
                                             </td>
                                         `;
+            }).join('')}
+                                </tr>`;
         }).join('')}
-                                </tr>
-                            `).join('')}
                 </tbody>
             </table>
         </div>
