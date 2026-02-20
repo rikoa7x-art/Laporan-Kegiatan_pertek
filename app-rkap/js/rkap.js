@@ -618,11 +618,77 @@ const RkapApp = {
             listContainer.scrollTop = 0;
         }
 
-        // Partial update for stats without re-rendering everything (preserves input focus)
-        this.updateStatsLabels();
+        // Update KPI stat cards reactively (without re-rendering entire view)
+        this.updateKpiCards();
+
+        // Update sidebar stats
+        this.updateSidebarStats();
 
         // Save filter state
         this.saveData();
+    },
+
+    // Update only the KPI stat card values (no full re-render, no focus loss)
+    updateKpiCards() {
+        const { branch, month } = this.state.filters;
+        const totalMaster = this.masterData ? this.masterData.length : 0;
+        const totalSelected = this.state.selectedItems.size;
+
+        const filtered = (this.masterData || []).filter(p => {
+            const matchesBranch = !branch || p.branch === branch;
+            let matchesMonth = true;
+            if (month) {
+                const searchMonth = Utils.getMonthKey(month);
+                if (p.monthly && Object.keys(p.monthly).length > 0) {
+                    matchesMonth = (p.monthly[searchMonth] || 0) > 0;
+                }
+            }
+            return matchesBranch && matchesMonth;
+        });
+
+        const totalFiltered = filtered.length;
+        const totalPaguFiltered = filtered.reduce((acc, p) => acc + (p.pagu || 0), 0);
+
+        // Count scheduled slots for current month
+        const monthKey = month ? `${Utils.getMonthKey(month)}_2026` : null;
+        let totalScheduledSlots = 0;
+        if (monthKey && this.state.weeklyPlans && this.state.weeklyPlans[monthKey]) {
+            Object.values(this.state.weeklyPlans[monthKey]).forEach(progPlans => {
+                ['W1', 'W2', 'W3', 'W4'].forEach(wk => {
+                    if (progPlans[wk] && (progPlans[wk].SURVEY_DATE || progPlans[wk].SURVEYOR_1)) totalScheduledSlots++;
+                });
+            });
+        }
+        const totalSchedulableSlots = totalSelected * 4;
+        const schedulePercent = totalSchedulableSlots > 0 ? Math.round((totalScheduledSlots / totalSchedulableSlots) * 100) : 0;
+
+        // Patch DOM directly
+        const kpiCards = document.querySelectorAll('.stat-kpi-card');
+        if (kpiCards.length >= 4) {
+            // Card 1: Total Program
+            kpiCards[0].querySelector('.stat-kpi-value').textContent = totalMaster.toLocaleString();
+            kpiCards[0].querySelector('.stat-kpi-sub').textContent = totalFiltered !== totalMaster ? `${totalFiltered} terfilter` : 'semua aktif';
+
+            // Card 2: Program Dipilih
+            kpiCards[1].querySelector('.stat-kpi-value').textContent = totalSelected.toLocaleString();
+            kpiCards[1].querySelector('.stat-kpi-sub').textContent = `${totalMaster > 0 ? Math.round(totalSelected / totalMaster * 100) : 0}% dari total`;
+
+            // Card 3: Pagu
+            kpiCards[2].querySelector('.stat-kpi-label').textContent = `Pagu ${month || '2026'}`;
+            kpiCards[2].querySelector('.stat-kpi-value').textContent = `Rp ${(totalPaguFiltered / 1000000).toFixed(0)} Jt`;
+            kpiCards[2].querySelector('.stat-kpi-sub').textContent = totalPaguFiltered.toLocaleString('id-ID');
+
+            // Card 4: Jadwal Terisi
+            kpiCards[3].querySelector('.stat-kpi-value').textContent = `${totalScheduledSlots}/${totalSchedulableSlots}`;
+            const bar = kpiCards[3].querySelector('.stat-kpi-progress-bar');
+            if (bar) bar.style.width = `${schedulePercent}%`;
+        }
+
+        // Update items-count-label
+        const countLabel = document.getElementById('items-count-label');
+        if (countLabel) {
+            countLabel.textContent = `Menampilkan ${totalFiltered.toLocaleString()} dari ${totalMaster.toLocaleString()} program`;
+        }
     },
 
     setViewMode(mode) {
