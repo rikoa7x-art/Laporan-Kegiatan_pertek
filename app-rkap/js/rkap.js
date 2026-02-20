@@ -519,7 +519,7 @@ const RkapApp = {
             </div>
 
             <!-- Full Width: Database Program Kerja -->
-            <div class="card-premium h-[calc(100vh-340px)] flex flex-col overflow-hidden">
+            <div id="dashboard-main-card" class="card-premium h-[calc(100vh-340px)] flex flex-col overflow-hidden">
                 <div class="p-6 border-b border-slate-700/50 bg-white/5 space-y-4">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>

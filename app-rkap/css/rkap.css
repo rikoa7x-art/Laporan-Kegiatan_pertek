@@ -557,6 +557,19 @@ header {
     .overflow-x-auto {
         -webkit-overflow-scrolling: touch;
     }
+
+    /* Dashboard program card: remove fixed height on mobile so page can scroll */
+    #dashboard-main-card {
+        height: auto !important;
+        overflow: visible !important;
+        min-height: 0 !important;
+    }
+
+    /* Inner list becomes naturally scrollable with page instead of trapped */
+    #dashboard-content {
+        overflow: visible !important;
+        max-height: none !important;
+    }
 }
 
 /* ========================================
