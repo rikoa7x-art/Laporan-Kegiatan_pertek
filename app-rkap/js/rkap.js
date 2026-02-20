@@ -218,9 +218,10 @@ const RkapApp = {
             if (window.PROGRAM_DATA) {
                 this.masterData = window.PROGRAM_DATA
                     .filter(row => {
-                        // Filter out "Total Investasi" entries (case insensitive)
+                        // Filter out total/summary rows (case insensitive)
                         const desc = (row.description || '').toLowerCase();
-                        return !desc.includes('total investasi');
+                        if (!desc) return false;
+                        return !desc.includes('total investasi') && !desc.includes('total anggaran') && !desc.includes('sub total');
                     })
                     .map(row => ({
                         id: row.id || Math.random().toString(36).substr(2, 9),
@@ -266,7 +267,10 @@ const RkapApp = {
 
             // 3. Try Global Variable RKAP_MASTER_DATA (Fallback)
             if (window.RKAP_MASTER_DATA) {
-                this.masterData = window.RKAP_MASTER_DATA;
+                this.masterData = window.RKAP_MASTER_DATA.filter(row => {
+                    const desc = (row.description || '').toLowerCase();
+                    return desc && !desc.includes('total investasi') && !desc.includes('total anggaran') && !desc.includes('sub total');
+                });
                 console.log(`📚 Loaded ${this.masterData.length} programs from rkap_data.js`);
                 this.render();
                 return;
